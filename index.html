@@ -20,7 +20,7 @@
       position: relative;
     }
 
-    /* Başla Butonu Stili */
+    /* Başlat Butonu Stili */
     #startBtn {
       position: absolute;
       top: 50%;
@@ -48,8 +48,9 @@
     .bouncing-name {
       position: absolute;
       padding: 10px 18px;
-      background-color: #333333;
-      color: #ffffff;
+      background-color: #ffffff; /* Beyaz arka plan */
+      color: #000000;            /* Siyah yazı */
+      border: 2px solid #000000; /* Siyah kenarlık */
       border-radius: 20px;
       font-size: 16px;
       font-weight: bold;
@@ -61,20 +62,15 @@
 </head>
 <body>
 
-  <button id="startBtn">Başla</button>
+  <button id="startBtn">Başlat 🚀</button>
 
   <script>
-    // Ekranda sekecek isimlerin listesi (Buraya istediğiniz isimleri ekleyip çıkarabilirsiniz)
+    // İsim listesi
     const isimler = [
-      "Ali Yılmaz",
-      "Ayşe Kaya",
-      "Mehmet Demir",
-      "Zeynep Çelik",
-      "Can Öztürk"
+      "Em Emir",
+      "Tırcı Berat",
+      "Kut Kutlu"
     ];
-
-    // İsim kutuları için renk seçenekleri
-    const renkler = ["#e74c3c", "#8e44ad", "#3498db", "#2ecc71", "#f39c12", "#d35400"];
 
     const startBtn = document.getElementById("startBtn");
     const elements = [];
@@ -88,22 +84,109 @@
         const div = document.createElement("div");
         div.className = "bouncing-name";
         div.textContent = isim;
-        
-        // Rastgele arka plan rengi atama
-        div.style.backgroundColor = renkler[index % renkler.length];
         document.body.appendChild(div);
 
-        // Rastgele başlangıç pozisyonu ve hız atama
         const rect = div.getBoundingClientRect();
-        let posX = Math.random() * (window.innerWidth - rect.width);
-        let posY = Math.random() * (window.innerHeight - rect.height);
         
-        // Rastgele yön (+ veya - hız)
-        let speedX = (Math.random() > 0.5 ? 1 : -1) * (2 + Math.random() * 3);
-        let speedY = (Math.random() > 0.5 ? 1 : -1) * (2 + Math.random() * 3);
+        // Çakışmayı önlemek için birbirinden uzak başlangıç konumları
+        let posX = (index + 1) * (window.innerWidth / (isimler.length + 1)) - (rect.width / 2);
+        let posY = (index + 1) * (window.innerHeight / (isimler.length + 1)) - (rect.height / 2);
+
+        // Rastgele yön ve hız
+        let speedX = (Math.random() > 0.5 ? 1 : -1) * (2.5 + Math.random() * 2);
+        let speedY = (Math.random() > 0.5 ? 1 : -1) * (2.5 + Math.random() * 2);
 
         elements.push({
           element: div,
+          x: posX,
+          y: posY,
+          speedX: speedX,
+          speedY: speedY,
+          width: rect.width,
+          height: rect.height
+        });
+      });
+
+      // Animasyonu başlat
+      requestAnimationFrame(animate);
+    });
+
+    // İki kutunun birbiriyle çakışıp çakışmadığını (çarpışıp çarpmadığını) kontrol eden fonksiyon
+    function checkCollision(a, b) {
+      return (
+        a.x < b.x + b.width &&
+        a.x + a.width > b.x &&
+        a.y < b.y + b.height &&
+        a.y + a.height > b.y
+      );
+    }
+
+    // Ana animasyon döngüsü
+    function animate() {
+      const screenWidth = window.innerWidth;
+      const screenHeight = window.innerHeight;
+
+      // Pozisyonları güncelle ve duvar çarpışmalarını kontrol et
+      elements.forEach(item => {
+        item.x += item.speedX;
+        item.y += item.speedY;
+
+        // Duvar çarpışmaları (Sol ve Sağ)
+        if (item.x + item.width >= screenWidth) {
+          item.x = screenWidth - item.width;
+          item.speedX *= -1;
+        } else if (item.x <= 0) {
+          item.x = 0;
+          item.speedX *= -1;
+        }
+
+        // Duvar çarpışmaları (Üst ve Alt)
+        if (item.y + item.height >= screenHeight) {
+          item.y = screenHeight - item.height;
+          item.speedY *= -1;
+        } else if (item.y <= 0) {
+          item.y = 0;
+          item.speedY *= -1;
+        }
+      });
+
+      // İsimlerin birbiriyle çarpışmasını kontrol et
+      for (let i = 0; i < elements.length; i++) {
+        for (let j = i + 1; j < elements.length; j++) {
+          let a = elements[i];
+          let b = elements[j];
+
+          if (checkCollision(a, b)) {
+            // Hızları değiştir (sektir)
+            let tempSpeedX = a.speedX;
+            let tempSpeedY = a.speedY;
+            
+            a.speedX = b.speedX;
+            a.speedY = b.speedY;
+            
+            b.speedX = tempSpeedX;
+            b.speedY = tempSpeedY;
+
+            // Kutuların birbirinin içine girmesini önlemek için hafifçe ayır
+            a.x += a.speedX;
+            a.y += a.speedY;
+            b.x += b.speedX;
+            b.y += b.speedY;
+          }
+        }
+      }
+
+      // Ekranda yeni konumları uygula
+      elements.forEach(item => {
+        item.element.style.left = item.x + "px";
+        item.element.style.top = item.y + "px";
+      });
+
+      requestAnimationFrame(animate);
+    }
+  </script>
+</body>
+</html>
           x: posX,
           y: posY,
           speedX: speedX,
