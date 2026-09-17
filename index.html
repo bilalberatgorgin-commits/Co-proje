@@ -35,17 +35,28 @@
       max-width: 360px;
     }
 
+    .class-title {
+      font-size: 22px;
+      font-weight: 900;
+      color: #007bff;
+      letter-spacing: 1.5px;
+      text-align: center;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+
     .credits {
       text-align: center;
       color: #000000;
+      width: 100%;
     }
 
     .credits .credit-block {
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .credits h4 {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: bold;
       text-transform: uppercase;
       letter-spacing: 1px;
@@ -129,7 +140,7 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
 
-    /* Ekranın Ortasındaki Soru Kartı Alanı */
+    /* Soru Kartı Alanı */
     #cardContainer {
       position: absolute;
       top: 52%;
@@ -143,9 +154,9 @@
       gap: 15px;
     }
 
-    /* Kartın Hemen Üstündeki Sonuç Mesajı */
+    /* Sonuç Mesajı */
     #resultMessage {
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 800;
       text-align: center;
       pointer-events: none;
@@ -263,6 +274,8 @@
 
   <!-- Başlangıç Ekranı -->
   <div id="startContainer">
+    <div class="class-title">10/B BİLİŞİM</div>
+
     <div class="credits">
       <div class="credit-block">
         <h4>Yapımcı</h4>
@@ -323,8 +336,25 @@
   </div>
 
   <script>
-    const beseriList = ["köprü", "yol", "baraj", "bina", "ev", "okul", "hastane", "fabrika", "tünel", "park", "araba", "uçak", "liman", "stadyum", "kanal", "müze", "sokak", "şehir", "kule", "surlar", "tarla", "otel"];
-    const dogalList = ["dağ", "nehir", "ırmak", "göl", "deniz", "okyanus", "orman", "ağaç", "toprak", "kaya", "taş", "rüzgar", "bulut", "yağmur", "ova", "plato", "vadi", "şelale", "mağara", "güneş", "hava", "ada", "yanardağ"];
+    // Genişletilmiş Kelime Listeleri
+    const beseriList = [
+      "köprü", "yol", "baraj", "bina", "ev", "okul", "hastane", "fabrika", "tünel", "park", 
+      "araba", "uçak", "liman", "stadyum", "kanal", "müze", "sokak", "şehir", "kule", "surlar", 
+      "tarla", "otel", "gökdelen", "avm", "alışveriş merkezi", "geçit", "üstgeçit", "altgeçit", 
+      "otoban", "karayolu", "demiryolu", "istasyon", "gar", "havalimanı", "havaalanı", "fırın", 
+      "market", "cami", "kilise", "tapınak", "saray", "kale", "anıt", "heykel", "çeşme", 
+      "gecekondu", "villa", "apartman", "sera", "maden ocağı", "iskele", "dalgakıran", "sığınak", 
+      "kütüphane", "tiyatro", "sinema", "stadyum", "havuz", "lunapark", "uzay üssü", "gözlemevi"
+    ];
+
+    const dogalList = [
+      "dağ", "nehir", "ırmak", "göl", "deniz", "okyanus", "orman", "ağaç", "toprak", "kaya", 
+      "taş", "rüzgar", "bulut", "yağmur", "ova", "plato", "vadi", "şelale", "mağara", "güneş", 
+      "hava", "ada", "yanardağ", "peribacası", "traverten", "obruk", "fiyort", "kanyon", 
+      "çağlayan", "gayzer", "koy", "körfez", "burun", "yarımada", "akarsu", "dere", "tepe", 
+      "buzul", "çöl", "bataklık", "sarmaşık", "çim", "bitki", "volkan", "krater", "krater gölü", 
+      "lagün", "falez", "yalıyar", "kumul", "dikit", "sarkıt", "sütun", "düden", "polye", "dolin"
+    ];
 
     let score = 0;
     let usedWords = [];
@@ -343,7 +373,6 @@
     const timerText = document.getElementById("timerText");
     const timeSelect = document.getElementById("timeSelect");
 
-    // Ses Motorunu Başlatma (Mobil engellerini aşmak için)
     function initAudio() {
       if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -353,7 +382,6 @@
       }
     }
 
-    // Bip ve Hata Sesleri
     function playSound(type) {
       initAudio();
       if (!audioCtx) return;
@@ -365,8 +393,8 @@
 
       if (type === "correct") {
         osc.type = "sine";
-        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
-        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); // A5
+        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15);
         gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
         osc.start();
@@ -383,7 +411,7 @@
     }
 
     startBtn.addEventListener("click", () => {
-      initAudio(); // Tıklama ile ses izni alınır
+      initAudio();
       score = 0;
       usedWords = [];
       wordCounts = {};
