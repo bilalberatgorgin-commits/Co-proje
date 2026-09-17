@@ -65,11 +65,11 @@
   <button id="startBtn">Başlat 🚀</button>
 
   <script>
-    // İsim listesi
+    // İstediğiniz Doğru İsim Listesi
     const isimler = [
-      "Efe Memir",
-      "Tırcı Berat",
-      "Kut Kutlu"
+      "Emir",
+      "Berat",
+      "Kutkutlu"
     ];
 
     const startBtn = document.getElementById("startBtn");
@@ -111,7 +111,7 @@
       requestAnimationFrame(animate);
     });
 
-    // İki kutunun birbiriyle çakışıp çakışmadığını (çarpışıp çarpmadığını) kontrol eden fonksiyon
+    // İki kutunun birbiriyle çakışıp çakışmadığını kontrol eden fonksiyon
     function checkCollision(a, b) {
       return (
         a.x < b.x + b.width &&
