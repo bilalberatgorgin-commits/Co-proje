@@ -40,19 +40,22 @@
       color: #000000;
     }
 
-    .credits h3 {
-      font-size: 18px;
+    .credits .credit-block {
+      margin-bottom: 8px;
+    }
+
+    .credits h4 {
+      font-size: 14px;
       font-weight: bold;
-      margin-bottom: 6px;
       text-transform: uppercase;
       letter-spacing: 1px;
+      color: #666;
     }
 
     .credits p {
       font-size: 16px;
-      font-weight: 600;
-      line-height: 1.4;
-      color: #333333;
+      font-weight: bold;
+      color: #000;
     }
 
     .time-select-group {
@@ -126,17 +129,48 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
 
-    /* Ekranın Tam Ortasındaki Tek Kart */
+    /* Ekranın Ortasındaki Soru Kartı Alanı */
     #cardContainer {
       position: absolute;
-      top: 50%;
+      top: 52%;
       left: 50%;
       transform: translate(-50%, -50%);
       width: 90%;
       max-width: 380px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
     }
 
+    /* Kartın Hemen Üstündeki Sonuç Mesajı */
+    #resultMessage {
+      font-size: 22px;
+      font-weight: 800;
+      text-align: center;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      background-color: #ffffff;
+      padding: 10px 24px;
+      border: 3px solid #000000;
+      border-radius: 30px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transform: translateY(10px);
+      width: 100%;
+    }
+
+    #resultMessage.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .correct { color: #28a745; border-color: #28a745 !important; }
+    .wrong { color: #dc3545; border-color: #dc3545 !important; }
+    .warning { color: #ff9800; border-color: #ff9800 !important; }
+
     .box {
+      width: 100%;
       padding: 24px;
       border: 2px solid #000000;
       border-radius: 16px;
@@ -188,29 +222,6 @@
       cursor: pointer;
     }
 
-    /* Bildirim Mesajı */
-    #resultMessage {
-      position: absolute;
-      bottom: 40px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 20px;
-      font-weight: bold;
-      text-align: center;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      background-color: #fff;
-      padding: 8px 16px;
-      border: 2px solid #000;
-      border-radius: 8px;
-      z-index: 100;
-    }
-
-    .correct { color: #28a745; }
-    .wrong { color: #dc3545; }
-    .warning { color: #ff9800; }
-
     /* Oyun Bitti Penceresi */
     #gameOverModal {
       display: none;
@@ -253,9 +264,18 @@
   <!-- Başlangıç Ekranı -->
   <div id="startContainer">
     <div class="credits">
-      <h3>Yapımcılar</h3>
-      <p>Emir Özten</p>
-      <p>Berat Görgin</p>
+      <div class="credit-block">
+        <h4>Yapımcı</h4>
+        <p>Berat Görgin</p>
+      </div>
+      <div class="credit-block">
+        <h4>Fikir Veren</h4>
+        <p>Kutluhan Kuşcu</p>
+      </div>
+      <div class="credit-block">
+        <h4>Yardımcı Olan</h4>
+        <p>Emir Özten</p>
+      </div>
     </div>
 
     <div class="time-select-group">
@@ -287,9 +307,10 @@
       <div class="info-badge">Süre: <span id="timerText">00:00</span></div>
     </div>
 
-    <div id="cardContainer"></div>
-
-    <div id="resultMessage"></div>
+    <div id="cardContainer">
+      <div id="resultMessage"></div>
+      <div id="cardContent" style="width:100%;"></div>
+    </div>
   </div>
 
   <!-- Oyun Bitti Penceresi -->
@@ -311,47 +332,58 @@
     let timerInterval;
     let timeLeft = 0;
     let currentType = "";
-    let audioCtx;
+    let audioCtx = null;
 
     const startContainer = document.getElementById("startContainer");
     const startBtn = document.getElementById("startBtn");
     const gameArea = document.getElementById("gameArea");
-    const cardContainer = document.getElementById("cardContainer");
+    const cardContent = document.getElementById("cardContent");
     const resultMessage = document.getElementById("resultMessage");
     const scoreText = document.getElementById("scoreText");
     const timerText = document.getElementById("timerText");
     const timeSelect = document.getElementById("timeSelect");
 
-    // Ses Oluşturma Fonksiyonu
-    function playSound(type) {
+    // Ses Motorunu Başlatma (Mobil engellerini aşmak için)
+    function initAudio() {
       if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       }
-      
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    // Bip ve Hata Sesleri
+    function playSound(type) {
+      initAudio();
+      if (!audioCtx) return;
+
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.connect(gain);
       gain.connect(audioCtx.destination);
 
       if (type === "correct") {
-        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.2);
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); // A5
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
         osc.start();
-        osc.stop(audioCtx.currentTime + 0.2);
+        osc.stop(audioCtx.currentTime + 0.15);
       } else if (type === "wrong") {
         osc.type = "sawtooth";
-        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.3);
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(90, audioCtx.currentTime + 0.25);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
         osc.start();
-        osc.stop(audioCtx.currentTime + 0.3);
+        osc.stop(audioCtx.currentTime + 0.25);
       }
     }
 
     startBtn.addEventListener("click", () => {
+      initAudio(); // Tıklama ile ses izni alınır
       score = 0;
       usedWords = [];
       wordCounts = {};
@@ -367,36 +399,36 @@
       startTimer();
     });
 
-    // Ekranın Ortasına Tek Bir Soru Kartı Yükleme
     function loadNextCard() {
       currentType = Math.random() < 0.5 ? "beseri" : "dogal";
 
       if (currentType === "beseri") {
-        cardContainer.innerHTML = `
+        cardContent.innerHTML = `
           <div class="box">
             <h2>Beşeri Unsur</h2>
             <p>İnsan eliyle ve bir amaç doğrultusunda yapılan bir unsur yazın.</p>
             <div class="input-group">
-              <input type="text" id="userInput" placeholder="Cevabınızı yazın..." autofocus>
+              <input type="text" id="userInput" placeholder="Cevabınızı yazın..." autocomplete="off">
               <button onclick="checkAnswer()">Kontrol Et</button>
             </div>
           </div>
         `;
       } else {
-        cardContainer.innerHTML = `
+        cardContent.innerHTML = `
           <div class="box">
             <h2>Doğal Unsur</h2>
             <p>Doğada kendiliğinden var olan bir unsur yazın.</p>
             <div class="input-group">
-              <input type="text" id="userInput" placeholder="Cevabınızı yazın..." autofocus>
+              <input type="text" id="userInput" placeholder="Cevabınızı yazın..." autocomplete="off">
               <button onclick="checkAnswer()">Kontrol Et</button>
             </div>
           </div>
         `;
       }
 
-      // Enter tuşuyla gönderme desteği
-      document.getElementById("userInput").addEventListener("keypress", (e) => {
+      const inputEl = document.getElementById("userInput");
+      inputEl.focus();
+      inputEl.addEventListener("keypress", (e) => {
         if (e.key === "Enter") checkAnswer();
       });
     }
@@ -432,7 +464,7 @@
         usedWords.push(input);
         playSound("correct");
         showResult("Doğru! (+1 Puan)", "correct");
-        loadNextCard(); // Doğru bilince yeni soruya geç
+        loadNextCard();
       } else {
         score -= 1;
         scoreText.textContent = score;
@@ -461,14 +493,15 @@
       timerText.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
 
+    let msgTimeout;
     function showResult(text, type) {
+      clearTimeout(msgTimeout);
       resultMessage.textContent = text;
-      resultMessage.className = type;
-      resultMessage.style.opacity = "1";
+      resultMessage.className = `show ${type}`;
 
-      setTimeout(() => {
-        resultMessage.style.opacity = "0";
-      }, 2000);
+      msgTimeout = setTimeout(() => {
+        resultMessage.className = "";
+      }, 1500);
     }
   </script>
 </body>
