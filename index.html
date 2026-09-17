@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Okul Projesi</title>
+  <title>Coğrafya - Beşeri ve Doğal Unsur Etkinliği</title>
   <style>
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
-    
+
     body {
       background-color: #ffffff;
       width: 100vw;
@@ -20,7 +20,7 @@
       position: relative;
     }
 
-    /* Başlat Butonu Stili */
+    /* Başlat Butonu */
     #startBtn {
       position: absolute;
       top: 50%;
@@ -44,19 +44,100 @@
       transform: translate(-50%, -50%) scale(1.05);
     }
 
-    /* Seken İsim Kutu Stilleri */
-    .bouncing-name {
+    /* Oyun Alanı Kapsayıcısı */
+    #gameArea {
+      display: none;
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    /* Sol ve Sağ Kutular */
+    .box {
       position: absolute;
-      padding: 10px 18px;
-      background-color: #ffffff; /* Beyaz arka plan */
-      color: #000000;            /* Siyah yazı */
-      border: 2px solid #000000; /* Siyah kenarlık */
-      border-radius: 20px;
-      font-size: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 320px;
+      padding: 20px;
+      border: 2px solid #000000;
+      border-radius: 12px;
+      background-color: #ffffff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .box-left {
+      left: 5%;
+    }
+
+    .box-right {
+      right: 5%;
+    }
+
+    .box h2 {
+      font-size: 20px;
+      text-align: center;
+      color: #000000;
+      border-bottom: 2px solid #333;
+      padding-bottom: 8px;
+    }
+
+    .box p {
+      font-size: 13px;
+      color: #444;
+      line-height: 1.4;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .input-group input {
+      padding: 10px;
+      border: 1px solid #000000;
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .input-group button {
+      padding: 8px;
+      background-color: #000000;
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
       font-weight: bold;
-      user-select: none;
-      white-space: nowrap;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+    }
+
+    .input-group button:hover {
+      background-color: #333333;
+    }
+
+    /* Sonuç Mesajı (Ekranın Ortasında) */
+    #resultMessage {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 36px;
+      font-weight: bold;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .correct {
+      color: #28a745;
+    }
+
+    .wrong {
+      color: #dc3545;
     }
   </style>
 </head>
@@ -64,125 +145,86 @@
 
   <button id="startBtn">Başlat 🚀</button>
 
+  <div id="gameArea">
+    <!-- Sol Taraf: Beşeri Unsur -->
+    <div class="box box-left">
+      <h2>Beşeri Unsur</h2>
+      <p>Doğada kendiliğinden var olmazlar. İnsan eliyle ve bir amaç doğrultusunda yapılırlar. Hayatı kolaylaştırmak veya ihtiyaçları karşılamak için geliştirilirler. Zamanla teknolojiye bağlı olarak değişir ve gelişirler.</p>
+      <div class="input-group">
+        <input type="text" id="beseriInput" placeholder="Bir beşeri unsur yazın...">
+        <button onclick="checkBeseri()">Kontrol Et</button>
+      </div>
+    </div>
+
+    <!-- Sağ Taraf: Doğal Unsur -->
+    <div class="box box-right">
+      <h2>Doğal Unsur</h2>
+      <p>Doğada kendiliğinden var olan, oluşumunda insan müdahalesi bulunmayan ve insanlardan önce de yer alan varlıklardır.</p>
+      <div class="input-group">
+        <input type="text" id="dogalInput" placeholder="Bir doğal unsur yazın...">
+        <button onclick="checkDogal()">Kontrol Et</button>
+      </div>
+    </div>
+
+    <!-- Ortada Görünecek Sonuç Mesajı -->
+    <div id="resultMessage"></div>
+  </div>
+
   <script>
-    // İstediğiniz Doğru İsim Listesi
-    const isimler = [
-      "Emir",
-      "Berat",
-      "Kutkutlu"
+    // Beşeri ve Doğal Unsur Veritabanı (Küçük harfle kontrol edilir)
+    const beseriList = [
+      "köprü", "yol", "baraj", "bina", "ev", "okul", "hastane", "fabrika", 
+      "tünel", "park", "araba", "uçak", "liman", "stadyum", "kanal", "müze",
+      "sokak", "şehir", "kule", "surlar", "tarla", "otel"
+    ];
+
+    const dogalList = [
+      "dağ", "nehir", "ırmak", "göl", "deniz", "okyanus", "orman", "ağaç", 
+      "toprak", "kaya", "taş", "rüzgar", "bulut", "yağmur", "ova", "plato", 
+      "vadi", "şelale", "mağara", "güneş", "hava", "ada", "yanardağ"
     ];
 
     const startBtn = document.getElementById("startBtn");
-    const elements = [];
+    const gameArea = document.getElementById("gameArea");
+    const resultMessage = document.getElementById("resultMessage");
 
     startBtn.addEventListener("click", () => {
-      // Butonu gizle
       startBtn.style.display = "none";
-
-      // Her isim için ekranda bir eleman oluştur
-      isimler.forEach((isim, index) => {
-        const div = document.createElement("div");
-        div.className = "bouncing-name";
-        div.textContent = isim;
-        document.body.appendChild(div);
-
-        const rect = div.getBoundingClientRect();
-        
-        // Çakışmayı önlemek için birbirinden uzak başlangıç konumları
-        let posX = (index + 1) * (window.innerWidth / (isimler.length + 1)) - (rect.width / 2);
-        let posY = (index + 1) * (window.innerHeight / (isimler.length + 1)) - (rect.height / 2);
-
-        // Rastgele yön ve hız
-        let speedX = (Math.random() > 0.5 ? 1 : -1) * (2.5 + Math.random() * 2);
-        let speedY = (Math.random() > 0.5 ? 1 : -1) * (2.5 + Math.random() * 2);
-
-        elements.push({
-          element: div,
-          x: posX,
-          y: posY,
-          speedX: speedX,
-          speedY: speedY,
-          width: rect.width,
-          height: rect.height
-        });
-      });
-
-      // Animasyonu başlat
-      requestAnimationFrame(animate);
+      gameArea.style.display = "block";
     });
 
-    // İki kutunun birbiriyle çakışıp çakışmadığını kontrol eden fonksiyon
-    function checkCollision(a, b) {
-      return (
-        a.x < b.x + b.width &&
-        a.x + a.width > b.x &&
-        a.y < b.y + b.height &&
-        a.y + a.height > b.y
-      );
+    function showResult(text, isCorrect) {
+      resultMessage.textContent = text;
+      resultMessage.className = isCorrect ? "correct" : "wrong";
+      resultMessage.style.opacity = "1";
+
+      setTimeout(() => {
+        resultMessage.style.opacity = "0";
+      }, 2000);
     }
 
-    // Ana animasyon döngüsü
-    function animate() {
-      const screenWidth = window.innerWidth;
-      const screenHeight = window.innerHeight;
+    function checkBeseri() {
+      const input = document.getElementById("beseriInput").value.trim().toLowerCase();
+      if (!input) return;
 
-      // Pozisyonları güncelle ve duvar çarpışmalarını kontrol et
-      elements.forEach(item => {
-        item.x += item.speedX;
-        item.y += item.speedY;
-
-        // Duvar çarpışmaları (Sol ve Sağ)
-        if (item.x + item.width >= screenWidth) {
-          item.x = screenWidth - item.width;
-          item.speedX *= -1;
-        } else if (item.x <= 0) {
-          item.x = 0;
-          item.speedX *= -1;
-        }
-
-        // Duvar çarpışmaları (Üst ve Alt)
-        if (item.y + item.height >= screenHeight) {
-          item.y = screenHeight - item.height;
-          item.speedY *= -1;
-        } else if (item.y <= 0) {
-          item.y = 0;
-          item.speedY *= -1;
-        }
-      });
-
-      // İsimlerin birbiriyle çarpışmasını kontrol et
-      for (let i = 0; i < elements.length; i++) {
-        for (let j = i + 1; j < elements.length; j++) {
-          let a = elements[i];
-          let b = elements[j];
-
-          if (checkCollision(a, b)) {
-            // Hızları değiştir (sektir)
-            let tempSpeedX = a.speedX;
-            let tempSpeedY = a.speedY;
-            
-            a.speedX = b.speedX;
-            a.speedY = b.speedY;
-            
-            b.speedX = tempSpeedX;
-            b.speedY = tempSpeedY;
-
-            // Kutuların birbirinin içine girmesini önlemek için hafifçe ayır
-            a.x += a.speedX;
-            a.y += a.speedY;
-            b.x += b.speedX;
-            b.y += b.speedY;
-          }
-        }
+      if (beseriList.includes(input)) {
+        showResult("Doğru", true);
+      } else {
+        showResult("Yanlış", false);
       }
+      document.getElementById("beseriInput").value = "";
+    }
 
-      // Ekranda yeni konumları uygula
-      elements.forEach(item => {
-        item.element.style.left = item.x + "px";
-        item.element.style.top = item.y + "px";
-      });
+    function checkDogal() {
+      const input = document.getElementById("dogalInput").value.trim().toLowerCase();
+      if (!input) return;
 
-      requestAnimationFrame(animate);
+      if (dogalList.includes(input)) {
+        showResult("Doğru", true);
+      } else {
+        showResult("Yanlış", false);
+      }
+      document.getElementById("dogalInput").value = "";
     }
   </script>
 </body>
