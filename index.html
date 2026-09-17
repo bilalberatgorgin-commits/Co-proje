@@ -67,7 +67,7 @@
   <script>
     // İsim listesi
     const isimler = [
-      "Em Emir",
+      "Efe Memir",
       "Tırcı Berat",
       "Kut Kutlu"
     ];
@@ -187,46 +187,3 @@
   </script>
 </body>
 </html>
-          x: posX,
-          y: posY,
-          speedX: speedX,
-          speedY: speedY
-        });
-      });
-
-      // Animasyonu başlat
-      requestAnimationFrame(animate);
-    });
-
-    // Sekme hareketini gerçekleştiren fonksiyon
-    function animate() {
-      const screenWidth = window.innerWidth;
-      const screenHeight = window.innerHeight;
-
-      elements.forEach(item => {
-        const rect = item.element.getBoundingClientRect();
-
-        item.x += item.speedX;
-        item.y += item.speedY;
-
-        // Sağ veya sol kenara çarpma kontrolü
-        if (item.x + rect.width >= screenWidth || item.x <= 0) {
-          item.speedX *= -1;
-        }
-
-        // Alt veya üst kenara çarpma kontrolü
-        if (item.y + rect.height >= screenHeight || item.y <= 0) {
-          item.speedY *= -1;
-        }
-
-        // Pozisyonu güncelle
-        item.element.style.left = item.x + "px";
-        item.element.style.top = item.y + "px";
-      });
-
-      requestAnimationFrame(animate);
-    }
-  </script>
-</body>
-</html>
-
