@@ -15,7 +15,7 @@
       background-color: #ffffff;
       width: 100vw;
       height: 100vh;
-      overflow-x: hidden;
+      overflow: hidden;
       font-family: Arial, sans-serif;
       position: relative;
     }
@@ -32,7 +32,7 @@
       gap: 15px;
       z-index: 10;
       width: 90%;
-      max-width: 400px;
+      max-width: 360px;
     }
 
     .credits {
@@ -55,7 +55,6 @@
       color: #333333;
     }
 
-    /* Süre Seçim Alanı */
     .time-select-group {
       display: flex;
       flex-direction: column;
@@ -101,15 +100,14 @@
     #gameArea {
       display: none;
       width: 100%;
-      min-height: 100vh;
-      padding: 80px 20px 20px 20px;
+      height: 100%;
       position: relative;
     }
 
-    /* Üst Bilgi Barı (Skor & Süre) */
+    /* Üst Bilgi Barı */
     #topBar {
-      position: fixed;
-      top: 15px;
+      position: absolute;
+      top: 20px;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
@@ -128,91 +126,84 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
 
-    /* Kutu Düzenleri */
-    .boxes-container {
-      display: flex;
-      justify-content: space-around;
-      align-items: flex-start;
-      flex-wrap: wrap;
-      gap: 20px;
-      width: 100%;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .column {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      flex: 1;
-      min-width: 280px;
+    /* Ekranın Tam Ortasındaki Tek Kart */
+    #cardContainer {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90%;
+      max-width: 380px;
     }
 
     .box {
-      padding: 15px;
+      padding: 24px;
       border: 2px solid #000000;
-      border-radius: 12px;
+      border-radius: 16px;
       background-color: #ffffff;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 14px;
+      text-align: center;
     }
 
     .box h2 {
-      font-size: 18px;
-      text-align: center;
+      font-size: 22px;
       color: #000000;
       border-bottom: 2px solid #333;
-      padding-bottom: 6px;
+      padding-bottom: 8px;
     }
 
     .box p {
-      font-size: 12px;
+      font-size: 14px;
       color: #444;
-      line-height: 1.3;
+      line-height: 1.4;
     }
 
     .input-group {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 10px;
+      margin-top: 5px;
     }
 
     .input-group input {
-      padding: 8px;
+      padding: 12px;
       border: 1px solid #000000;
-      border-radius: 6px;
-      font-size: 14px;
+      border-radius: 8px;
+      font-size: 15px;
       outline: none;
+      text-align: center;
     }
 
     .input-group button {
-      padding: 8px;
+      padding: 12px;
       background-color: #000000;
       color: #ffffff;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       font-weight: bold;
+      font-size: 15px;
       cursor: pointer;
     }
 
     /* Bildirim Mesajı */
     #resultMessage {
-      position: fixed;
-      bottom: 20px;
+      position: absolute;
+      bottom: 40px;
       left: 50%;
       transform: translateX(-50%);
-      font-size: 22px;
+      font-size: 20px;
       font-weight: bold;
       text-align: center;
       pointer-events: none;
       opacity: 0;
       transition: opacity 0.3s ease;
       background-color: #fff;
-      padding: 10px 20px;
+      padding: 8px 16px;
       border: 2px solid #000;
-      border-radius: 10px;
+      border-radius: 8px;
       z-index: 100;
     }
 
@@ -220,7 +211,7 @@
     .wrong { color: #dc3545; }
     .warning { color: #ff9800; }
 
-    /* Oyun Bitti Ekranı */
+    /* Oyun Bitti Penceresi */
     #gameOverModal {
       display: none;
       position: fixed;
@@ -296,10 +287,7 @@
       <div class="info-badge">Süre: <span id="timerText">00:00</span></div>
     </div>
 
-    <div class="boxes-container">
-      <div class="column" id="beseriColumn"></div>
-      <div class="column" id="dogalColumn"></div>
-    </div>
+    <div id="cardContainer"></div>
 
     <div id="resultMessage"></div>
   </div>
@@ -322,14 +310,46 @@
     let wordCounts = {};
     let timerInterval;
     let timeLeft = 0;
+    let currentType = "";
+    let audioCtx;
 
     const startContainer = document.getElementById("startContainer");
     const startBtn = document.getElementById("startBtn");
     const gameArea = document.getElementById("gameArea");
+    const cardContainer = document.getElementById("cardContainer");
     const resultMessage = document.getElementById("resultMessage");
     const scoreText = document.getElementById("scoreText");
     const timerText = document.getElementById("timerText");
     const timeSelect = document.getElementById("timeSelect");
+
+    // Ses Oluşturma Fonksiyonu
+    function playSound(type) {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === "correct") {
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.2);
+      } else if (type === "wrong") {
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+      }
+    }
 
     startBtn.addEventListener("click", () => {
       score = 0;
@@ -343,44 +363,82 @@
       startContainer.style.display = "none";
       gameArea.style.display = "block";
 
-      generateBoxes();
+      loadNextCard();
       startTimer();
     });
 
-    // 1-5 arası rastgele sayıda beşeri ve doğal unsur kutuları oluşturma
-    function generateBoxes() {
-      const beseriCol = document.getElementById("beseriColumn");
-      const dogalCol = document.getElementById("dogalColumn");
-      beseriCol.innerHTML = "";
-      dogalCol.innerHTML = "";
+    // Ekranın Ortasına Tek Bir Soru Kartı Yükleme
+    function loadNextCard() {
+      currentType = Math.random() < 0.5 ? "beseri" : "dogal";
 
-      const beseriCount = Math.floor(Math.random() * 5) + 1; // 1 - 5 arası
-      const dogalCount = Math.floor(Math.random() * 5) + 1;  // 1 - 5 arası
-
-      for (let i = 0; i < beseriCount; i++) {
-        beseriCol.innerHTML += `
+      if (currentType === "beseri") {
+        cardContainer.innerHTML = `
           <div class="box">
-            <h2>Beşeri Unsur (${i + 1})</h2>
-            <p>İnsan eliyle ve bir amaç doğrultusunda yapılırlar.</p>
+            <h2>Beşeri Unsur</h2>
+            <p>İnsan eliyle ve bir amaç doğrultusunda yapılan bir unsur yazın.</p>
             <div class="input-group">
-              <input type="text" class="beseriInput" placeholder="Bir beşeri unsur yazın...">
-              <button onclick="checkInput(this, 'beseri')">Kontrol Et</button>
+              <input type="text" id="userInput" placeholder="Cevabınızı yazın..." autofocus>
+              <button onclick="checkAnswer()">Kontrol Et</button>
+            </div>
+          </div>
+        `;
+      } else {
+        cardContainer.innerHTML = `
+          <div class="box">
+            <h2>Doğal Unsur</h2>
+            <p>Doğada kendiliğinden var olan bir unsur yazın.</p>
+            <div class="input-group">
+              <input type="text" id="userInput" placeholder="Cevabınızı yazın..." autofocus>
+              <button onclick="checkAnswer()">Kontrol Et</button>
             </div>
           </div>
         `;
       }
 
-      for (let i = 0; i < dogalCount; i++) {
-        dogalCol.innerHTML += `
-          <div class="box">
-            <h2>Doğal Unsur (${i + 1})</h2>
-            <p>Oluşumunda insan müdahalesi bulunmayan varlıklardır.</p>
-            <div class="input-group">
-              <input type="text" class="dogalInput" placeholder="Bir doğal unsur yazın...">
-              <button onclick="checkInput(this, 'dogal')">Kontrol Et</button>
-            </div>
-          </div>
-        `;
+      // Enter tuşuyla gönderme desteği
+      document.getElementById("userInput").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") checkAnswer();
+      });
+    }
+
+    function checkAnswer() {
+      const inputEl = document.getElementById("userInput");
+      const input = inputEl.value.trim().toLowerCase();
+      if (!input) return;
+
+      const correctList = currentType === "beseri" ? beseriList : dogalList;
+
+      wordCounts[input] = (wordCounts[input] || 0) + 1;
+
+      if (wordCounts[input] === 3) {
+        score -= 1;
+        scoreText.textContent = score;
+        playSound("wrong");
+        showResult("Aynı şeyi 3 kez yazdın! (-1 Puan)", "wrong");
+        loadNextCard();
+        return;
+      }
+
+      if (usedWords.includes(input)) {
+        playSound("wrong");
+        showResult("Bu kelimeyi zaten kullandın!", "warning");
+        inputEl.value = "";
+        return;
+      }
+
+      if (correctList.includes(input)) {
+        score += 1;
+        scoreText.textContent = score;
+        usedWords.push(input);
+        playSound("correct");
+        showResult("Doğru! (+1 Puan)", "correct");
+        loadNextCard(); // Doğru bilince yeni soruya geç
+      } else {
+        score -= 1;
+        scoreText.textContent = score;
+        playSound("wrong");
+        showResult("Yanlış! (-1 Puan)", "wrong");
+        inputEl.value = "";
       }
     }
 
@@ -411,43 +469,6 @@
       setTimeout(() => {
         resultMessage.style.opacity = "0";
       }, 2000);
-    }
-
-    function checkInput(buttonEl, type) {
-      const inputEl = buttonEl.previousElementSibling;
-      const input = inputEl.value.trim().toLowerCase();
-      if (!input) return;
-
-      const correctList = type === 'beseri' ? beseriList : dogalList;
-
-      wordCounts[input] = (wordCounts[input] || 0) + 1;
-
-      if (wordCounts[input] === 3) {
-        score -= 1;
-        scoreText.textContent = score;
-        showResult("Aynı şeyi 3 kez yazdın! (-1 Puan)", "wrong");
-        inputEl.value = "";
-        return;
-      }
-
-      if (usedWords.includes(input)) {
-        showResult("Bu kelimeyi zaten kullandın!", "warning");
-        inputEl.value = "";
-        return;
-      }
-
-      if (correctList.includes(input)) {
-        score += 1;
-        scoreText.textContent = score;
-        usedWords.push(input);
-        showResult("Doğru! (+1 Puan)", "correct");
-      } else {
-        score -= 1;
-        scoreText.textContent = score;
-        showResult("Yanlış! (-1 Puan)", "wrong");
-      }
-
-      inputEl.value = "";
     }
   </script>
 </body>
