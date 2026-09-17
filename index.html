@@ -81,6 +81,23 @@
       position: relative;
     }
 
+    /* Skor Tablosu */
+    #scoreBoard {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 25px;
+      border: 2px solid #000000;
+      border-radius: 20px;
+      background-color: #ffffff;
+      font-size: 22px;
+      font-weight: bold;
+      color: #000000;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      z-index: 5;
+    }
+
     /* Sol ve Sağ Kutular */
     .box {
       position: absolute;
@@ -151,14 +168,16 @@
     /* Sonuç Mesajı (Ekranın Ortasında) */
     #resultMessage {
       position: absolute;
-      top: 50%;
+      top: 55%;
       left: 50%;
       transform: translate(-50%, -50%);
-      font-size: 36px;
+      font-size: 28px;
       font-weight: bold;
+      text-align: center;
       pointer-events: none;
       opacity: 0;
       transition: opacity 0.3s ease;
+      max-width: 300px;
     }
 
     .correct {
@@ -167,6 +186,11 @@
 
     .wrong {
       color: #dc3545;
+    }
+
+    .warning {
+      color: #ff9800;
+      font-size: 22px;
     }
   </style>
 </head>
@@ -183,6 +207,9 @@
   </div>
 
   <div id="gameArea">
+    <!-- Skor Tablosu -->
+    <div id="scoreBoard">Skor: <span id="scoreText">0</span></div>
+
     <!-- Sol Taraf: Beşeri Unsur -->
     <div class="box box-left">
       <h2>Beşeri Unsur</h2>
@@ -208,7 +235,7 @@
   </div>
 
   <script>
-    // Beşeri ve Doğal Unsur Veritabanı
+    // Veritabanı
     const beseriList = [
       "köprü", "yol", "baraj", "bina", "ev", "okul", "hastane", "fabrika", 
       "tünel", "park", "araba", "uçak", "liman", "stadyum", "kanal", "müze",
@@ -221,19 +248,31 @@
       "vadi", "şelale", "mağara", "güneş", "hava", "ada", "yanardağ"
     ];
 
+    // Değişkenler
+    let score = 0;
+    let usedWords = [];
+    let wordCounts = {};
+
     const startContainer = document.getElementById("startContainer");
     const startBtn = document.getElementById("startBtn");
     const gameArea = document.getElementById("gameArea");
     const resultMessage = document.getElementById("resultMessage");
+    const scoreText = document.getElementById("scoreText");
 
+    // Başlat butonuna basınca her şeyi sıfırla ve oyunu başlat
     startBtn.addEventListener("click", () => {
+      score = 0;
+      usedWords = [];
+      wordCounts = {};
+      scoreText.textContent = score;
+
       startContainer.style.display = "none";
       gameArea.style.display = "block";
     });
 
-    function showResult(text, isCorrect) {
+    function showResult(text, type) {
       resultMessage.textContent = text;
-      resultMessage.className = isCorrect ? "correct" : "wrong";
+      resultMessage.className = type; // correct, wrong, warning
       resultMessage.style.opacity = "1";
 
       setTimeout(() => {
@@ -241,28 +280,51 @@
       }, 2000);
     }
 
-    function checkBeseri() {
-      const input = document.getElementById("beseriInput").value.trim().toLowerCase();
+    function processWord(input, correctList) {
       if (!input) return;
 
-      if (beseriList.includes(input)) {
-        showResult("Doğru", true);
-      } else {
-        showResult("Yanlış", false);
+      // Kelimenin kaç kez yazıldığını takip et
+      wordCounts[input] = (wordCounts[input] || 0) + 1;
+
+      // Eğer aynı kelime 3. kez yazıldıysa
+      if (wordCounts[input] === 3) {
+        score -= 1;
+        scoreText.textContent = score;
+        showResult("Aynı şeyi 3 kez yazdın! (-1 Puan)", "wrong");
+        return;
       }
-      document.getElementById("beseriInput").value = "";
+
+      // Eğer kelime daha önce kullanılmışsa
+      if (usedWords.includes(input)) {
+        showResult("Bu kelimeyi zaten kullandın!", "warning");
+        return;
+      }
+
+      // Doğru mu yanlış mı kontrolü
+      if (correctList.includes(input)) {
+        score += 1;
+        scoreText.textContent = score;
+        usedWords.push(input);
+        showResult("Doğru! (+1 Puan)", "correct");
+      } else {
+        score -= 1;
+        scoreText.textContent = score;
+        showResult("Yanlış! (-1 Puan)", "wrong");
+      }
+    }
+
+    function checkBeseri() {
+      const inputEl = document.getElementById("beseriInput");
+      const input = inputEl.value.trim().toLowerCase();
+      processWord(input, beseriList);
+      inputEl.value = "";
     }
 
     function checkDogal() {
-      const input = document.getElementById("dogalInput").value.trim().toLowerCase();
-      if (!input) return;
-
-      if (dogalList.includes(input)) {
-        showResult("Doğru", true);
-      } else {
-        showResult("Yanlış", false);
-      }
-      document.getElementById("dogalInput").value = "";
+      const inputEl = document.getElementById("dogalInput");
+      const input = inputEl.value.trim().toLowerCase();
+      processWord(input, dogalList);
+      inputEl.value = "";
     }
   </script>
 </body>
