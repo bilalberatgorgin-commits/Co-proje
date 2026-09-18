@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Coğrafya - Beşeri ve Doğal Unsur Etkinliği</title>
+  
+  <!-- Firebase SDK (CDN) Bağlantıları (Compat sürümleri) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
   <style>
     * {
       box-sizing: border-box;
@@ -506,8 +511,32 @@
   </div>
 
   <script>
+    // Firebase Yapılandırması
+    const firebaseConfig = {
+      apiKey: "AIzaSyCSIuOsMTprNj3336wb4PbrgT7hbnCcyU8",
+      authDomain: "cografya-172d0.firebaseapp.com",
+      databaseURL: "https://cografya-172d0-default-rtdb.firebaseio.com",
+      projectId: "cografya-172d0",
+      storageBucket: "cografya-172d0.firebasestorage.app",
+      messagingSenderId: "769560860987",
+      appId: "1:769560860987:web:34af0795678c24eb65bf1e",
+      measurementId: "G-13G8QBY00G"
+    };
+
+    // Firebase'i Başlat
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
     const ADMIN_EMAIL = "bilalberatgorgin@gmail.com";
     const ADMIN_PASS = "bilalcan47";
+
+    // E-postaları Firebase anahtarlarında nokta (.) kullanılmadığı için dönüştürme yardımcıları
+    function emailToKey(email) {
+      return email.trim().toLowerCase().replace(/\./g, "_");
+    }
+    function keyToEmail(key) {
+      return key.replace(/_/g, ".");
+    }
 
     let beseriList = JSON.parse(localStorage.getItem("customBeseri")) || [
       "köprü", "yol", "baraj", "bina", "ev", "okul", "hastane", "fabrika", "tünel", "park", 
@@ -528,11 +557,6 @@
       "lagün", "falez", "yalıyar", "kumul", "dikit", "sarkıt", "sütun", "düden", "polye", "dolin"
     ];
 
-    // Varsayılan Admin Hesabını Tanımla
-    let allUsers = JSON.parse(localStorage.getItem("allUsersData") || "{}");
-    allUsers[ADMIN_EMAIL] = ADMIN_PASS;
-    localStorage.setItem("allUsersData", JSON.stringify(allUsers));
-
     let score = 0;
     let usedWords = [];
     let wordCounts = {};
@@ -552,6 +576,16 @@
     const timeSelect = document.getElementById("timeSelect");
     const authHeaderBtn = document.getElementById("authHeaderBtn");
     const adminHeaderBtn = document.getElementById("adminHeaderBtn");
+
+    // Başlangıçta Admin hesabını buluta otomatik kaydet
+    db.ref("users/" + emailToKey(ADMIN_EMAIL)).once("value", snapshot => {
+      if (!snapshot.exists()) {
+        db.ref("users/" + emailToKey(ADMIN_EMAIL)).set({
+          password: ADMIN_PASS,
+          createdAt: Date.now()
+        });
+      }
+    });
 
     updateAuthUI();
 
@@ -626,39 +660,43 @@
       document.getElementById("adminModal").style.display = "none";
     }
 
+    // Buluttan Giriş Yapma
     function handleLogin() {
-      const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+      const emailInput = document.getElementById("loginEmail").value.trim().toLowerCase();
       const pass = document.getElementById("loginPass").value.trim();
 
-      if (!email || !pass) {
+      if (!emailInput || !pass) {
         alert("Lütfen Gmail ve şifrenizi girin!");
         return;
       }
 
-      const users = JSON.parse(localStorage.getItem("allUsersData") || "{}");
+      const userKey = emailToKey(emailInput);
 
-      if (!users[email]) {
-        alert("Bu e-posta ile kayıtlı hesap bulunamadı! Lütfen 'Kayıt Ol' sekmesinden hesap oluşturun.");
-        return;
-      }
-
-      if (users[email] !== pass) {
-        alert("Hatalı şifre girdiniz! Lütfen kontrol edip tekrar deneyin.");
-        return;
-      }
-
-      currentUser = email;
-      localStorage.setItem("currentUser", currentUser);
-      updateAuthUI();
-      alert("Başarıyla giriş yapıldı!");
+      db.ref("users/" + userKey).once("value", snapshot => {
+        if (!snapshot.exists()) {
+          alert("Bu e-posta ile kayıtlı hesap bulunamadı! Lütfen 'Kayıt Ol' sekmesinden hesap oluşturun.");
+        } else {
+          const data = snapshot.val();
+          if (data.password === pass) {
+            currentUser = emailInput;
+            localStorage.setItem("currentUser", currentUser);
+            updateAuthUI();
+            alert("Başarıyla giriş yapıldı!");
+            closeAuthModal();
+          } else {
+            alert("Hatalı şifre girdiniz! Lütfen kontrol edip tekrar deneyin.");
+          }
+        }
+      });
     }
 
+    // Buluta Kayıt Olma
     function handleRegister() {
-      const email = document.getElementById("regEmail").value.trim().toLowerCase();
+      const emailInput = document.getElementById("regEmail").value.trim().toLowerCase();
       const pass = document.getElementById("regPass").value.trim();
       const passConfirm = document.getElementById("regPassConfirm").value.trim();
 
-      if (!email || !pass || !passConfirm) {
+      if (!emailInput || !pass || !passConfirm) {
         alert("Lütfen tüm alanları doldurun!");
         return;
       }
@@ -668,26 +706,31 @@
         return;
       }
 
-      const users = JSON.parse(localStorage.getItem("allUsersData") || "{}");
+      const userKey = emailToKey(emailInput);
 
-      if (users[email]) {
-        alert("Bu e-posta adresi zaten kayıtlı! Lütfen 'Giriş Yap' sekmesini kullanın.");
-        return;
-      }
-
-      users[email] = pass;
-      localStorage.setItem("allUsersData", JSON.stringify(users));
-
-      currentUser = email;
-      localStorage.setItem("currentUser", currentUser);
-      updateAuthUI();
-      alert("Hesabınız başarıyla oluşturuldu ve giriş yapıldı!");
+      db.ref("users/" + userKey).once("value", snapshot => {
+        if (snapshot.exists()) {
+          alert("Bu e-posta adresi zaten kayıtlı! Lütfen 'Giriş Yap' sekmesini kullanın.");
+        } else {
+          db.ref("users/" + userKey).set({
+            password: pass,
+            createdAt: Date.now()
+          }).then(() => {
+            alert("Hesabınız başarıyla oluşturuldu ve giriş yapıldı!");
+            currentUser = emailInput;
+            localStorage.setItem("currentUser", currentUser);
+            updateAuthUI();
+            closeAuthModal();
+          });
+        }
+      });
     }
 
     function logout() {
       currentUser = null;
       localStorage.removeItem("currentUser");
       updateAuthUI();
+      closeAuthModal();
     }
 
     function updateAuthUI() {
@@ -711,23 +754,25 @@
       }
     }
 
-    /* Admin İşlevleri */
+    /* Admin İşlevleri (Buluttan Kullanıcı Çekme) */
     function renderAdminUsers() {
-      const users = JSON.parse(localStorage.getItem("allUsersData") || "{}");
       const container = document.getElementById("adminUserList");
-      const keys = Object.keys(users);
+      db.ref("users").on("value", snapshot => {
+        const users = snapshot.val() || {};
+        const keys = Object.keys(users);
 
-      if (keys.length === 0) {
-        container.innerHTML = "<p style='color:#777;'>Kayıtlı kullanıcı yok.</p>";
-        return;
-      }
+        if (keys.length === 0) {
+          container.innerHTML = "<p style='color:#777;'>Kayıtlı kullanıcı yok.</p>";
+          return;
+        }
 
-      container.innerHTML = keys.map(e => `
-        <div class="history-item">
-          <span>📧 ${e}</span>
-          <strong>🔑 ${users[e]}</strong>
-        </div>
-      `).join("");
+        container.innerHTML = keys.map(e => `
+          <div class="history-item">
+            <span>📧 ${keyToEmail(e)}</span>
+            <strong>🔑 ${users[e].password}</strong>
+          </div>
+        `).join("");
+      });
     }
 
     function addCustomTime() {
@@ -763,37 +808,43 @@
       document.getElementById("newWordTxt").value = "";
     }
 
+    // Buluta Skor Kaydetme
     function saveGameToHistory(finalScore) {
       if (!currentUser) return;
-
-      const historyKey = "history_" + currentUser;
-      const history = JSON.parse(localStorage.getItem(historyKey) || "[]");
+      const userKey = emailToKey(currentUser);
       
       const now = new Date();
       const dateStr = now.toLocaleDateString("tr-TR");
       const timeStr = now.toLocaleTimeString("tr-TR", { hour: '2-digit', minute: '2-digit' });
 
-      history.unshift({ score: finalScore, date: `${dateStr} - ${timeStr}` });
-      localStorage.setItem(historyKey, JSON.stringify(history));
+      db.ref("scores/" + userKey).push({
+        score: finalScore,
+        date: `${dateStr} - ${timeStr}`
+      });
     }
 
+    // Buluttan Skor Geçmişini Çekme
     function renderHistory() {
       if (!currentUser) return;
-      const historyKey = "history_" + currentUser;
-      const history = JSON.parse(localStorage.getItem(historyKey) || "[]");
+      const userKey = emailToKey(currentUser);
       const container = document.getElementById("historyContainer");
 
-      if (history.length === 0) {
-        container.innerHTML = "<p style='color:#777;'>Henüz kayıtlı oyun yok.</p>";
-        return;
-      }
+      db.ref("scores/" + userKey).on("value", snapshot => {
+        const scoresObj = snapshot.val() || {};
+        const items = Object.values(scoresObj).reverse(); // En son oynanan en üstte
 
-      container.innerHTML = history.map(item => `
-        <div class="history-item">
-          <span>📅 ${item.date}</span>
-          <strong>Skor: ${item.score}</strong>
-        </div>
-      `).join("");
+        if (items.length === 0) {
+          container.innerHTML = "<p style='color:#777;'>Henüz kayıtlı oyun yok.</p>";
+          return;
+        }
+
+        container.innerHTML = items.map(item => `
+          <div class="history-item">
+            <span>📅 ${item.date}</span>
+            <strong>Skor: ${item.score}</strong>
+          </div>
+        `).join("");
+      });
     }
 
     startBtn.addEventListener("click", () => {
