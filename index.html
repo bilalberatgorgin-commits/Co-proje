@@ -15,9 +15,26 @@
       background-color: #ffffff;
       width: 100vw;
       height: 100vh;
-      overflow: hidden;
+      overflow-x: hidden;
       font-family: Arial, sans-serif;
       position: relative;
+    }
+
+    /* Sağ Üst Giriş/Hesap Butonu */
+    #authHeaderBtn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      padding: 8px 16px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 13px;
+      cursor: pointer;
+      z-index: 150;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
 
     /* Başlangıç Ekranı */
@@ -52,7 +69,7 @@
     }
 
     .credits .credit-block {
-      margin-bottom: 6px;
+      margin-bottom: 8px;
     }
 
     .credits h4 {
@@ -67,6 +84,13 @@
       font-size: 16px;
       font-weight: bold;
       color: #000;
+    }
+
+    /* Yapımcı İsmini Büyütme */
+    .credits .producer-name {
+      font-size: 22px !important;
+      font-weight: 900 !important;
+      color: #000000 !important;
     }
 
     .time-select-group {
@@ -118,29 +142,27 @@
       position: relative;
     }
 
-    /* Üst Bilgi Barı */
     #topBar {
       position: absolute;
       top: 20px;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
-      gap: 20px;
+      gap: 15px;
       z-index: 100;
     }
 
     .info-badge {
-      padding: 8px 20px;
+      padding: 8px 16px;
       border: 2px solid #000000;
       border-radius: 20px;
       background-color: #ffffff;
-      font-size: 18px;
+      font-size: 16px;
       font-weight: bold;
       color: #000000;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
 
-    /* Soru Kartı Alanı */
     #cardContainer {
       position: absolute;
       top: 52%;
@@ -154,7 +176,6 @@
       gap: 15px;
     }
 
-    /* Sonuç Mesajı */
     #resultMessage {
       font-size: 20px;
       font-weight: 800;
@@ -233,8 +254,8 @@
       cursor: pointer;
     }
 
-    /* Oyun Bitti Penceresi */
-    #gameOverModal {
+    /* Modal / Pencere Yapısı */
+    .modal-overlay {
       display: none;
       position: fixed;
       top: 0;
@@ -249,18 +270,28 @@
 
     .modal-content {
       background-color: #fff;
-      padding: 30px;
+      padding: 25px;
       border-radius: 12px;
       border: 3px solid #000;
       text-align: center;
       display: flex;
       flex-direction: column;
-      gap: 15px;
+      gap: 12px;
+      width: 90%;
+      max-width: 350px;
+    }
+
+    .modal-content input {
+      padding: 10px;
+      border: 1px solid #000;
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
     }
 
     .modal-content button {
       padding: 10px 20px;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: bold;
       background-color: #007bff;
       color: #fff;
@@ -268,9 +299,29 @@
       border-radius: 6px;
       cursor: pointer;
     }
+
+    .history-list {
+      max-height: 180px;
+      overflow-y: auto;
+      text-align: left;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 8px;
+      font-size: 13px;
+    }
+
+    .history-item {
+      padding: 6px 0;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+    }
   </style>
 </head>
 <body>
+
+  <!-- Sağ Üst Buton -->
+  <button id="authHeaderBtn" onclick="openAuthModal()">Giriş Yap / Kayıt Ol</button>
 
   <!-- Başlangıç Ekranı -->
   <div id="startContainer">
@@ -279,7 +330,7 @@
     <div class="credits">
       <div class="credit-block">
         <h4>Yapımcı</h4>
-        <p>Berat Görgin</p>
+        <p class="producer-name">Berat Görgin</p>
       </div>
       <div class="credit-block">
         <h4>Fikir Veren</h4>
@@ -326,8 +377,27 @@
     </div>
   </div>
 
+  <!-- Giriş / Kayıt Ol Penceresi -->
+  <div id="authModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3 id="authTitle">Giriş Yap / Kayıt Ol</h3>
+      <div id="authForm">
+        <input type="email" id="userEmail" placeholder="Gmail adresiniz..." style="width:100%;">
+        <input type="password" id="userPass" placeholder="Şifreniz..." style="width:100%; margin-top:8px;">
+        <button onclick="handleAuth()" style="margin-top:12px; width:100%;">Devam Et ➡️</button>
+      </div>
+      <div id="userProfile" style="display:none;">
+        <p id="loggedInUserText" style="font-weight:bold; word-break:break-all;"></p>
+        <h4 style="margin-top:10px; text-align:left;">Oyun Geçmişiniz:</h4>
+        <div id="historyContainer" class="history-list"></div>
+        <button onclick="logout()" style="background-color:#dc3545; margin-top:8px; width:100%;">Çıkış Yap</button>
+      </div>
+      <button onclick="closeAuthModal()" style="background-color:#6c757d; margin-top:5px; width:100%;">Kapat</button>
+    </div>
+  </div>
+
   <!-- Oyun Bitti Penceresi -->
-  <div id="gameOverModal">
+  <div id="gameOverModal" class="modal-overlay">
     <div class="modal-content">
       <h2>Süre Bitti! ⏰</h2>
       <p id="finalScoreText">Toplam Skorunuz: 0</p>
@@ -336,7 +406,6 @@
   </div>
 
   <script>
-    // Genişletilmiş Kelime Listeleri
     const beseriList = [
       "köprü", "yol", "baraj", "bina", "ev", "okul", "hastane", "fabrika", "tünel", "park", 
       "araba", "uçak", "liman", "stadyum", "kanal", "müze", "sokak", "şehir", "kule", "surlar", 
@@ -363,6 +432,7 @@
     let timeLeft = 0;
     let currentType = "";
     let audioCtx = null;
+    let currentUser = localStorage.getItem("currentUser") || null;
 
     const startContainer = document.getElementById("startContainer");
     const startBtn = document.getElementById("startBtn");
@@ -372,6 +442,9 @@
     const scoreText = document.getElementById("scoreText");
     const timerText = document.getElementById("timerText");
     const timeSelect = document.getElementById("timeSelect");
+    const authHeaderBtn = document.getElementById("authHeaderBtn");
+
+    updateAuthUI();
 
     function initAudio() {
       if (!audioCtx) {
@@ -410,6 +483,85 @@
       }
     }
 
+    /* Üyelik ve Geçmiş Yönetimi */
+    function openAuthModal() {
+      document.getElementById("authModal").style.display = "flex";
+      updateAuthUI();
+    }
+
+    function closeAuthModal() {
+      document.getElementById("authModal").style.display = "none";
+    }
+
+    function handleAuth() {
+      const email = document.getElementById("userEmail").value.trim();
+      const pass = document.getElementById("userPass").value.trim();
+
+      if (!email || !pass) {
+        alert("Lütfen Gmail ve şifrenizi girin!");
+        return;
+      }
+
+      currentUser = email;
+      localStorage.setItem("currentUser", currentUser);
+      updateAuthUI();
+    }
+
+    function logout() {
+      currentUser = null;
+      localStorage.removeItem("currentUser");
+      updateAuthUI();
+    }
+
+    function updateAuthUI() {
+      if (currentUser) {
+        authHeaderBtn.textContent = "👤 Hesabım";
+        document.getElementById("authTitle").textContent = "Hesap Paneli";
+        document.getElementById("authForm").style.display = "none";
+        document.getElementById("userProfile").style.display = "block";
+        document.getElementById("loggedInUserText").textContent = currentUser;
+        renderHistory();
+      } else {
+        authHeaderBtn.textContent = "Giriş Yap / Kayıt Ol";
+        document.getElementById("authTitle").textContent = "Giriş Yap / Kayıt Ol";
+        document.getElementById("authForm").style.display = "block";
+        document.getElementById("userProfile").style.display = "none";
+      }
+    }
+
+    function saveGameToHistory(finalScore) {
+      if (!currentUser) return;
+
+      const historyKey = "history_" + currentUser;
+      const history = JSON.parse(localStorage.getItem(historyKey) || "[]");
+      
+      const now = new Date();
+      const dateStr = now.toLocaleDateString("tr-TR");
+      const timeStr = now.toLocaleTimeString("tr-TR", { hour: '2-digit', minute: '2-digit' });
+
+      history.unshift({ score: finalScore, date: `${dateStr} - ${timeStr}` });
+      localStorage.setItem(historyKey, JSON.stringify(history));
+    }
+
+    function renderHistory() {
+      if (!currentUser) return;
+      const historyKey = "history_" + currentUser;
+      const history = JSON.parse(localStorage.getItem(historyKey) || "[]");
+      const container = document.getElementById("historyContainer");
+
+      if (history.length === 0) {
+        container.innerHTML = "<p style='color:#777;'>Henüz kayıtlı oyun yok.</p>";
+        return;
+      }
+
+      container.innerHTML = history.map(item => `
+        <div class="history-item">
+          <span>📅 ${item.date}</span>
+          <strong>Skor: ${item.score}</strong>
+        </div>
+      `).join("");
+    }
+
     startBtn.addEventListener("click", () => {
       initAudio();
       score = 0;
@@ -421,6 +573,7 @@
       updateTimerDisplay();
 
       startContainer.style.display = "none";
+      authHeaderBtn.style.display = "none";
       gameArea.style.display = "block";
 
       loadNextCard();
@@ -509,6 +662,7 @@
 
         if (timeLeft <= 0) {
           clearInterval(timerInterval);
+          saveGameToHistory(score);
           document.getElementById("finalScoreText").textContent = "Toplam Skorunuz: " + score;
           document.getElementById("gameOverModal").style.display = "flex";
         }
@@ -534,4 +688,3 @@
   </script>
 </body>
 </html>
-
