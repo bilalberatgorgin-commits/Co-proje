@@ -20,11 +20,17 @@
       position: relative;
     }
 
-    /* Sağ Üst Giriş/Hesap Butonu */
-    #authHeaderBtn {
+    /* Sağ Üst Butonlar Kapsayıcısı */
+    #headerButtons {
       position: absolute;
       top: 15px;
       right: 15px;
+      display: flex;
+      gap: 10px;
+      z-index: 150;
+    }
+
+    .header-btn {
       padding: 8px 16px;
       background-color: #007bff;
       color: #fff;
@@ -33,8 +39,12 @@
       font-weight: bold;
       font-size: 13px;
       cursor: pointer;
-      z-index: 150;
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    #adminHeaderBtn {
+      background-color: #ff9800;
+      display: none;
     }
 
     /* Başlangıç Ekranı */
@@ -86,11 +96,11 @@
       color: #000;
     }
 
-    /* Yapımcı İsmini Büyütme */
     .credits .producer-name {
-      font-size: 22px !important;
+      font-size: 24px !important;
       font-weight: 900 !important;
       color: #000000 !important;
+      text-transform: uppercase;
     }
 
     .time-select-group {
@@ -278,10 +288,12 @@
       flex-direction: column;
       gap: 12px;
       width: 90%;
-      max-width: 350px;
+      max-width: 380px;
+      max-height: 85vh;
+      overflow-y: auto;
     }
 
-    .modal-content input {
+    .modal-content input, .modal-content select {
       padding: 10px;
       border: 1px solid #000;
       border-radius: 6px;
@@ -300,28 +312,45 @@
       cursor: pointer;
     }
 
-    .history-list {
-      max-height: 180px;
+    .list-box {
+      max-height: 150px;
       overflow-y: auto;
       text-align: left;
       border: 1px solid #ccc;
       border-radius: 6px;
       padding: 8px;
       font-size: 13px;
+      background-color: #f9f9f9;
     }
 
-    .history-item {
+    .list-item {
       padding: 6px 0;
       border-bottom: 1px solid #eee;
       display: flex;
       justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .admin-section {
+      border-top: 2px dashed #ff9800;
+      padding-top: 10px;
+      margin-top: 10px;
+      text-align: left;
+    }
+
+    .admin-section h4 {
+      margin-bottom: 6px;
+      color: #d97706;
     }
   </style>
 </head>
 <body>
 
-  <!-- Sağ Üst Buton -->
-  <button id="authHeaderBtn" onclick="openAuthModal()">Giriş Yap / Kayıt Ol</button>
+  <!-- Sağ Üst Butonlar -->
+  <div id="headerButtons">
+    <button id="adminHeaderBtn" class="header-btn" onclick="openAdminModal()">👑 Admin Paneli</button>
+    <button id="authHeaderBtn" class="header-btn" onclick="openAuthModal()">Giriş Yap / Kayıt Ol</button>
+  </div>
 
   <!-- Başlangıç Ekranı -->
   <div id="startContainer">
@@ -389,10 +418,44 @@
       <div id="userProfile" style="display:none;">
         <p id="loggedInUserText" style="font-weight:bold; word-break:break-all;"></p>
         <h4 style="margin-top:10px; text-align:left;">Oyun Geçmişiniz:</h4>
-        <div id="historyContainer" class="history-list"></div>
+        <div id="historyContainer" class="list-box"></div>
         <button onclick="logout()" style="background-color:#dc3545; margin-top:8px; width:100%;">Çıkış Yap</button>
       </div>
-      <button onclick="closeAuthModal()" style="background-color:#6c757d; margin-top:5px; width:100%;">Kapat</button>
+      <button onclick="closeModal('authModal')" style="background-color:#6c757d; margin-top:5px; width:100%;">Kapat</button>
+    </div>
+  </div>
+
+  <!-- Admin Paneli Penceresi -->
+  <div id="adminModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3>👑 Özel Admin Paneli</h3>
+      
+      <div class="admin-section">
+        <h4>👥 Kayıtlı Kullanıcılar (Gmail & Şifre)</h4>
+        <div id="userListContainer" class="list-box"></div>
+      </div>
+
+      <div class="admin-section">
+        <h4>⏱️ Özel Süre Ekle</h4>
+        <div style="display:flex; gap:8px;">
+          <input type="number" id="customMinutes" placeholder="Dakika girin (ör: 30, 60)" style="flex:1;">
+          <button onclick="addCustomTime()">Ekle</button>
+        </div>
+      </div>
+
+      <div class="admin-section">
+        <h4>➕ Yeni Kelime Ekle</h4>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <select id="newWordCategory">
+            <option value="beseri">Beşeri Unsur</option>
+            <option value="dogal">Doğal Unsur</option>
+          </select>
+          <input type="text" id="newWordInput" placeholder="Kelime yazın...">
+          <button onclick="addNewWord()">Kelimeyi Ekle</button>
+        </div>
+      </div>
+
+      <button onclick="closeModal('adminModal')" style="background-color:#6c757d; margin-top:10px; width:100%;">Kapat</button>
     </div>
   </div>
 
@@ -406,7 +469,9 @@
   </div>
 
   <script>
-    const beseriList = [
+    const ADMIN_EMAIL = "bilalberatgorgin@gmail.com";
+
+    let beseriList = JSON.parse(localStorage.getItem("customBeseri")) || [
       "köprü", "yol", "baraj", "bina", "ev", "okul", "hastane", "fabrika", "tünel", "park", 
       "araba", "uçak", "liman", "stadyum", "kanal", "müze", "sokak", "şehir", "kule", "surlar", 
       "tarla", "otel", "gökdelen", "avm", "alışveriş merkezi", "geçit", "üstgeçit", "altgeçit", 
@@ -416,7 +481,7 @@
       "kütüphane", "tiyatro", "sinema", "stadyum", "havuz", "lunapark", "uzay üssü", "gözlemevi"
     ];
 
-    const dogalList = [
+    let dogalList = JSON.parse(localStorage.getItem("customDogal")) || [
       "dağ", "nehir", "ırmak", "göl", "deniz", "okyanus", "orman", "ağaç", "toprak", "kaya", 
       "taş", "rüzgar", "bulut", "yağmur", "ova", "plato", "vadi", "şelale", "mağara", "güneş", 
       "hava", "ada", "yanardağ", "peribacası", "traverten", "obruk", "fiyort", "kanyon", 
@@ -443,6 +508,7 @@
     const timerText = document.getElementById("timerText");
     const timeSelect = document.getElementById("timeSelect");
     const authHeaderBtn = document.getElementById("authHeaderBtn");
+    const adminHeaderBtn = document.getElementById("adminHeaderBtn");
 
     updateAuthUI();
 
@@ -483,24 +549,34 @@
       }
     }
 
-    /* Üyelik ve Geçmiş Yönetimi */
     function openAuthModal() {
       document.getElementById("authModal").style.display = "flex";
       updateAuthUI();
     }
 
-    function closeAuthModal() {
-      document.getElementById("authModal").style.display = "none";
+    function openAdminModal() {
+      if (currentUser !== ADMIN_EMAIL) return;
+      document.getElementById("adminModal").style.display = "flex";
+      renderUserList();
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).style.display = "none";
     }
 
     function handleAuth() {
-      const email = document.getElementById("userEmail").value.trim();
+      const email = document.getElementById("userEmail").value.trim().toLowerCase();
       const pass = document.getElementById("userPass").value.trim();
 
       if (!email || !pass) {
         alert("Lütfen Gmail ve şifrenizi girin!");
         return;
       }
+
+      // Kullanıcı verisini sisteme kaydet
+      const users = JSON.parse(localStorage.getItem("registeredUsers") || "{}");
+      users[email] = pass;
+      localStorage.setItem("registeredUsers", JSON.stringify(users));
 
       currentUser = email;
       localStorage.setItem("currentUser", currentUser);
@@ -521,8 +597,16 @@
         document.getElementById("userProfile").style.display = "block";
         document.getElementById("loggedInUserText").textContent = currentUser;
         renderHistory();
+
+        // Admin Kontrolü
+        if (currentUser === ADMIN_EMAIL) {
+          adminHeaderBtn.style.display = "block";
+        } else {
+          adminHeaderBtn.style.display = "none";
+        }
       } else {
         authHeaderBtn.textContent = "Giriş Yap / Kayıt Ol";
+        adminHeaderBtn.style.display = "none";
         document.getElementById("authTitle").textContent = "Giriş Yap / Kayıt Ol";
         document.getElementById("authForm").style.display = "block";
         document.getElementById("userProfile").style.display = "none";
@@ -555,136 +639,49 @@
       }
 
       container.innerHTML = history.map(item => `
-        <div class="history-item">
+        <div class="list-item">
           <span>📅 ${item.date}</span>
           <strong>Skor: ${item.score}</strong>
         </div>
       `).join("");
     }
 
-    startBtn.addEventListener("click", () => {
-      initAudio();
-      score = 0;
-      usedWords = [];
-      wordCounts = {};
-      scoreText.textContent = score;
+    /* Admin İşlevleri */
+    function renderUserList() {
+      const users = JSON.parse(localStorage.getItem("registeredUsers") || "{}");
+      const container = document.getElementById("userListContainer");
+      const keys = Object.keys(users);
 
-      timeLeft = parseInt(timeSelect.value);
-      updateTimerDisplay();
-
-      startContainer.style.display = "none";
-      authHeaderBtn.style.display = "none";
-      gameArea.style.display = "block";
-
-      loadNextCard();
-      startTimer();
-    });
-
-    function loadNextCard() {
-      currentType = Math.random() < 0.5 ? "beseri" : "dogal";
-
-      if (currentType === "beseri") {
-        cardContent.innerHTML = `
-          <div class="box">
-            <h2>Beşeri Unsur</h2>
-            <p>İnsan eliyle ve bir amaç doğrultusunda yapılan bir unsur yazın.</p>
-            <div class="input-group">
-              <input type="text" id="userInput" placeholder="Cevabınızı yazın..." autocomplete="off">
-              <button onclick="checkAnswer()">Kontrol Et</button>
-            </div>
-          </div>
-        `;
-      } else {
-        cardContent.innerHTML = `
-          <div class="box">
-            <h2>Doğal Unsur</h2>
-            <p>Doğada kendiliğinden var olan bir unsur yazın.</p>
-            <div class="input-group">
-              <input type="text" id="userInput" placeholder="Cevabınızı yazın..." autocomplete="off">
-              <button onclick="checkAnswer()">Kontrol Et</button>
-            </div>
-          </div>
-        `;
-      }
-
-      const inputEl = document.getElementById("userInput");
-      inputEl.focus();
-      inputEl.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") checkAnswer();
-      });
-    }
-
-    function checkAnswer() {
-      const inputEl = document.getElementById("userInput");
-      const input = inputEl.value.trim().toLowerCase();
-      if (!input) return;
-
-      const correctList = currentType === "beseri" ? beseriList : dogalList;
-
-      wordCounts[input] = (wordCounts[input] || 0) + 1;
-
-      if (wordCounts[input] === 3) {
-        score -= 1;
-        scoreText.textContent = score;
-        playSound("wrong");
-        showResult("Aynı şeyi 3 kez yazdın! (-1 Puan)", "wrong");
-        loadNextCard();
+      if (keys.length === 0) {
+        container.innerHTML = "<p style='color:#777;'>Kayıtlı kullanıcı yok.</p>";
         return;
       }
 
-      if (usedWords.includes(input)) {
-        playSound("wrong");
-        showResult("Bu kelimeyi zaten kullandın!", "warning");
-        inputEl.value = "";
-        return;
-      }
-
-      if (correctList.includes(input)) {
-        score += 1;
-        scoreText.textContent = score;
-        usedWords.push(input);
-        playSound("correct");
-        showResult("Doğru! (+1 Puan)", "correct");
-        loadNextCard();
-      } else {
-        score -= 1;
-        scoreText.textContent = score;
-        playSound("wrong");
-        showResult("Yanlış! (-1 Puan)", "wrong");
-        inputEl.value = "";
-      }
+      container.innerHTML = keys.map(email => `
+        <div class="list-item">
+          <span>📧 ${email}</span>
+          <span>🔑 <strong>${users[email]}</strong></span>
+        </div>
+      `).join("");
     }
 
-    function startTimer() {
-      timerInterval = setInterval(() => {
-        timeLeft--;
-        updateTimerDisplay();
+    function addCustomTime() {
+      const mins = parseInt(document.getElementById("customMinutes").value);
+      if (!mins || mins <= 0) return alert("Geçerli bir dakika girin!");
 
-        if (timeLeft <= 0) {
-          clearInterval(timerInterval);
-          saveGameToHistory(score);
-          document.getElementById("finalScoreText").textContent = "Toplam Skorunuz: " + score;
-          document.getElementById("gameOverModal").style.display = "flex";
-        }
-      }, 1000);
+      const seconds = mins * 60;
+      const option = document.createElement("option");
+      option.value = seconds;
+      option.textContent = `${mins} Dakika (Özel)`;
+      timeSelect.appendChild(option);
+      option.selected = true;
+
+      alert(`${mins} dakikalık yeni süre seçeneği eklendi!`);
+      document.getElementById("customMinutes").value = "";
     }
 
-    function updateTimerDisplay() {
-      const mins = Math.floor(timeLeft / 60);
-      const secs = timeLeft % 60;
-      timerText.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    }
+    function addNewWord() {
+      const category = document.getElementById("newWordCategory").value;
+      const word = document.getElementById("newWordInput").value.trim().toLowerCase();
 
-    let msgTimeout;
-    function showResult(text, type) {
-      clearTimeout(msgTimeout);
-      resultMessage.textContent = text;
-      resultMessage.className = `show ${type}`;
-
-      msgTimeout = setTimeout(() => {
-        resultMessage.className = "";
-      }, 1500);
-    }
-  </script>
-</body>
-</html>
+      if (!word) return alert("Lütfen bir 
