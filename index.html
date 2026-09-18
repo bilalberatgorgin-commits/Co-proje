@@ -20,11 +20,17 @@
       position: relative;
     }
 
-    /* Sağ Üst Giriş/Hesap Butonu */
-    #authHeaderBtn {
+    /* Üst Butonlar Alani */
+    #headerButtons {
       position: absolute;
       top: 15px;
       right: 15px;
+      display: flex;
+      gap: 8px;
+      z-index: 150;
+    }
+
+    .top-btn {
       padding: 8px 16px;
       background-color: #007bff;
       color: #fff;
@@ -33,8 +39,12 @@
       font-weight: bold;
       font-size: 13px;
       cursor: pointer;
-      z-index: 150;
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    #adminHeaderBtn {
+      background-color: #ff9800;
+      display: none;
     }
 
     /* Başlangıç Ekranı */
@@ -86,7 +96,6 @@
       color: #000;
     }
 
-    /* Yapımcı İsmini Büyütme */
     .credits .producer-name {
       font-size: 22px !important;
       font-weight: 900 !important;
@@ -278,10 +287,12 @@
       flex-direction: column;
       gap: 12px;
       width: 90%;
-      max-width: 350px;
+      max-width: 360px;
+      max-height: 85vh;
+      overflow-y: auto;
     }
 
-    .modal-content input {
+    .modal-content input, .modal-content select {
       padding: 10px;
       border: 1px solid #000;
       border-radius: 6px;
@@ -301,13 +312,14 @@
     }
 
     .history-list {
-      max-height: 180px;
+      max-height: 150px;
       overflow-y: auto;
       text-align: left;
       border: 1px solid #ccc;
       border-radius: 6px;
       padding: 8px;
       font-size: 13px;
+      background-color: #f9f9f9;
     }
 
     .history-item {
@@ -316,12 +328,27 @@
       display: flex;
       justify-content: space-between;
     }
+
+    .admin-section {
+      border-top: 2px dashed #ff9800;
+      padding-top: 10px;
+      margin-top: 10px;
+      text-align: left;
+    }
+
+    .admin-section h4 {
+      color: #d97706;
+      margin-bottom: 6px;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Sağ Üst Buton -->
-  <button id="authHeaderBtn" onclick="openAuthModal()">Giriş Yap / Kayıt Ol</button>
+  <!-- Üst Butonlar -->
+  <div id="headerButtons">
+    <button id="adminHeaderBtn" class="top-btn" onclick="openAdminModal()">👑 Admin Paneli</button>
+    <button id="authHeaderBtn" class="top-btn" onclick="openAuthModal()">Giriş Yap / Kayıt Ol</button>
+  </div>
 
   <!-- Başlangıç Ekranı -->
   <div id="startContainer">
@@ -396,6 +423,40 @@
     </div>
   </div>
 
+  <!-- Admin Paneli Penceresi -->
+  <div id="adminModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3>👑 Admin Paneli</h3>
+      
+      <div class="admin-section">
+        <h4>👥 Kayıtlı Kullanıcılar (Gmail / Şifre)</h4>
+        <div id="adminUserList" class="history-list"></div>
+      </div>
+
+      <div class="admin-section">
+        <h4>⏱️ Özel Süre Ekle</h4>
+        <div style="display:flex; gap:6px;">
+          <input type="number" id="customMinInput" placeholder="Dakika (Örn: 15)" style="flex:1;">
+          <button onclick="addCustomTime()">Ekle</button>
+        </div>
+      </div>
+
+      <div class="admin-section">
+        <h4>➕ Yeni Kelime Ekle</h4>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <select id="newWordCat">
+            <option value="beseri">Beşeri Unsur</option>
+            <option value="dogal">Doğal Unsur</option>
+          </select>
+          <input type="text" id="newWordTxt" placeholder="Yeni kelime...">
+          <button onclick="addNewWord()">Kelimeyi Ekle</button>
+        </div>
+      </div>
+
+      <button onclick="closeAdminModal()" style="background-color:#6c757d; margin-top:10px; width:100%;">Kapat</button>
+    </div>
+  </div>
+
   <!-- Oyun Bitti Penceresi -->
   <div id="gameOverModal" class="modal-overlay">
     <div class="modal-content">
@@ -406,7 +467,9 @@
   </div>
 
   <script>
-    const beseriList = [
+    const ADMIN_EMAIL = "bilalberatgorgin@gmail.com";
+
+    let beseriList = JSON.parse(localStorage.getItem("customBeseri")) || [
       "köprü", "yol", "baraj", "bina", "ev", "okul", "hastane", "fabrika", "tünel", "park", 
       "araba", "uçak", "liman", "stadyum", "kanal", "müze", "sokak", "şehir", "kule", "surlar", 
       "tarla", "otel", "gökdelen", "avm", "alışveriş merkezi", "geçit", "üstgeçit", "altgeçit", 
@@ -416,7 +479,7 @@
       "kütüphane", "tiyatro", "sinema", "stadyum", "havuz", "lunapark", "uzay üssü", "gözlemevi"
     ];
 
-    const dogalList = [
+    let dogalList = JSON.parse(localStorage.getItem("customDogal")) || [
       "dağ", "nehir", "ırmak", "göl", "deniz", "okyanus", "orman", "ağaç", "toprak", "kaya", 
       "taş", "rüzgar", "bulut", "yağmur", "ova", "plato", "vadi", "şelale", "mağara", "güneş", 
       "hava", "ada", "yanardağ", "peribacası", "traverten", "obruk", "fiyort", "kanyon", 
@@ -443,6 +506,7 @@
     const timerText = document.getElementById("timerText");
     const timeSelect = document.getElementById("timeSelect");
     const authHeaderBtn = document.getElementById("authHeaderBtn");
+    const adminHeaderBtn = document.getElementById("adminHeaderBtn");
 
     updateAuthUI();
 
@@ -483,7 +547,7 @@
       }
     }
 
-    /* Üyelik ve Geçmiş Yönetimi */
+    /* Üyelik ve Yönetim */
     function openAuthModal() {
       document.getElementById("authModal").style.display = "flex";
       updateAuthUI();
@@ -493,14 +557,29 @@
       document.getElementById("authModal").style.display = "none";
     }
 
+    function openAdminModal() {
+      if (currentUser !== ADMIN_EMAIL) return;
+      document.getElementById("adminModal").style.display = "flex";
+      renderAdminUsers();
+    }
+
+    function closeAdminModal() {
+      document.getElementById("adminModal").style.display = "none";
+    }
+
     function handleAuth() {
-      const email = document.getElementById("userEmail").value.trim();
+      const email = document.getElementById("userEmail").value.trim().toLowerCase();
       const pass = document.getElementById("userPass").value.trim();
 
       if (!email || !pass) {
         alert("Lütfen Gmail ve şifrenizi girin!");
         return;
       }
+
+      // Kullanıcı listesine kaydet
+      const allUsers = JSON.parse(localStorage.getItem("allUsersData") || "{}");
+      allUsers[email] = pass;
+      localStorage.setItem("allUsersData", JSON.stringify(allUsers));
 
       currentUser = email;
       localStorage.setItem("currentUser", currentUser);
@@ -521,12 +600,71 @@
         document.getElementById("userProfile").style.display = "block";
         document.getElementById("loggedInUserText").textContent = currentUser;
         renderHistory();
+
+        if (currentUser === ADMIN_EMAIL) {
+          adminHeaderBtn.style.display = "block";
+        } else {
+          adminHeaderBtn.style.display = "none";
+        }
       } else {
         authHeaderBtn.textContent = "Giriş Yap / Kayıt Ol";
+        adminHeaderBtn.style.display = "none";
         document.getElementById("authTitle").textContent = "Giriş Yap / Kayıt Ol";
         document.getElementById("authForm").style.display = "block";
         document.getElementById("userProfile").style.display = "none";
       }
+    }
+
+    /* Admin İşlevleri */
+    function renderAdminUsers() {
+      const allUsers = JSON.parse(localStorage.getItem("allUsersData") || "{}");
+      const container = document.getElementById("adminUserList");
+      const keys = Object.keys(allUsers);
+
+      if (keys.length === 0) {
+        container.innerHTML = "<p style='color:#777;'>Kayıtlı kullanıcı yok.</p>";
+        return;
+      }
+
+      container.innerHTML = keys.map(e => `
+        <div class="history-item">
+          <span>📧 ${e}</span>
+          <strong>🔑 ${allUsers[e]}</strong>
+        </div>
+      `).join("");
+    }
+
+    function addCustomTime() {
+      const mins = parseInt(document.getElementById("customMinInput").value);
+      if (!mins || mins <= 0) return alert("Geçerli bir dakika girin!");
+
+      const secs = mins * 60;
+      const opt = document.createElement("option");
+      opt.value = secs;
+      opt.textContent = `${mins} Dakika (Özel)`;
+      timeSelect.appendChild(opt);
+      opt.selected = true;
+
+      alert(`${mins} dakikalık yeni süre eklendi!`);
+      document.getElementById("customMinInput").value = "";
+    }
+
+    function addNewWord() {
+      const cat = document.getElementById("newWordCat").value;
+      const word = document.getElementById("newWordTxt").value.trim().toLowerCase();
+
+      if (!word) return alert("Bir kelime girin!");
+
+      if (cat === "beseri") {
+        beseriList.push(word);
+        localStorage.setItem("customBeseri", JSON.stringify(beseriList));
+      } else {
+        dogalList.push(word);
+        localStorage.setItem("customDogal", JSON.stringify(dogalList));
+      }
+
+      alert(`'${word}' kelimesi eklendi!`);
+      document.getElementById("newWordTxt").value = "";
     }
 
     function saveGameToHistory(finalScore) {
@@ -573,7 +711,7 @@
       updateTimerDisplay();
 
       startContainer.style.display = "none";
-      authHeaderBtn.style.display = "none";
+      document.getElementById("headerButtons").style.display = "none";
       gameArea.style.display = "block";
 
       loadNextCard();
