@@ -33,7 +33,7 @@
       font-weight: bold;
       font-size: 13px;
       cursor: pointer;
-      z-index: 150;
+      z-index: 100;
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
 
@@ -128,10 +128,6 @@
       cursor: pointer;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
       width: 100%;
-    }
-
-    #startBtn:hover {
-      background-color: #0056b3;
     }
 
     /* Oyun Alanı */
@@ -254,16 +250,16 @@
       cursor: pointer;
     }
 
-    /* Modal / Pencere Yapısı */
+    /* Modal Yapısı */
     .modal-overlay {
-      display: none;
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(0, 0, 0, 0.6);
-      z-index: 200;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 500;
+      display: flex;
       justify-content: center;
       align-items: center;
     }
@@ -284,7 +280,7 @@
     }
 
     .modal-content input {
-      padding: 10px;
+      padding: 12px;
       border: 1px solid #000;
       border-radius: 6px;
       font-size: 14px;
@@ -292,7 +288,7 @@
     }
 
     .modal-content button {
-      padding: 10px 20px;
+      padding: 12px;
       font-size: 15px;
       font-weight: bold;
       background-color: #007bff;
@@ -394,7 +390,7 @@
   </div>
 
   <!-- Giriş / Kayıt Ol Penceresi -->
-  <div id="authModal" class="modal-overlay">
+  <div id="authModal" class="modal-overlay" style="display:none;">
     <div class="modal-content">
       <h3 id="authTitle">Giriş Yap / Kayıt Ol</h3>
       <div id="authForm">
@@ -407,7 +403,7 @@
         
         <!-- SADECE SİZİN MAİLİNİZDE GÖRÜNECEK LİSTE -->
         <div id="adminUserListSection" class="admin-box" style="display:none;">
-          <h4>🔑 Kayıtlı Kullanıcılar (Özel Liste):</h4>
+          <h4>🔑 Kayıtlı Kullanıcılar (Gözetim):</h4>
           <div id="allUsersList" class="list-box"></div>
         </div>
 
@@ -420,7 +416,7 @@
   </div>
 
   <!-- Oyun Bitti Penceresi -->
-  <div id="gameOverModal" class="modal-overlay">
+  <div id="gameOverModal" class="modal-overlay" style="display:none;">
     <div class="modal-content">
       <h2>Süre Bitti! ⏰</h2>
       <p id="finalScoreText">Toplam Skorunuz: 0</p>
@@ -696,4 +692,5 @@
         return;
       }
 
-      if (
+      if (correctList.includes(input)) {
+     
