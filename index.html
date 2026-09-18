@@ -14,16 +14,18 @@
     body {
       background-color: #ffffff;
       width: 100vw;
-      min-height: 100vh;
+      height: 100vh;
+      overflow-x: hidden;
       font-family: Arial, sans-serif;
+      position: relative;
     }
 
-    /* Giriş Butonu */
+    /* Sağ Üst Giriş/Hesap Butonu */
     #authHeaderBtn {
       position: absolute;
       top: 15px;
       right: 15px;
-      padding: 10px 16px;
+      padding: 8px 16px;
       background-color: #007bff;
       color: #fff;
       border: none;
@@ -31,19 +33,23 @@
       font-weight: bold;
       font-size: 13px;
       cursor: pointer;
+      z-index: 150;
       box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
 
-    /* Ana Ekran */
+    /* Başlangıç Ekranı */
     #startContainer {
-      padding-top: 70px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 15px;
+      z-index: 10;
       width: 90%;
       max-width: 360px;
-      margin: 0 auto;
     }
 
     .class-title {
@@ -52,12 +58,13 @@
       color: #007bff;
       letter-spacing: 1.5px;
       text-align: center;
+      margin-bottom: 5px;
       text-transform: uppercase;
     }
 
     .credits {
       text-align: center;
-      color: #000;
+      color: #000000;
       width: 100%;
     }
 
@@ -69,6 +76,7 @@
       font-size: 13px;
       font-weight: bold;
       text-transform: uppercase;
+      letter-spacing: 1px;
       color: #666;
     }
 
@@ -78,11 +86,11 @@
       color: #000;
     }
 
+    /* Yapımcı İsmini Büyütme */
     .credits .producer-name {
-      font-size: 24px !important;
+      font-size: 22px !important;
       font-weight: 900 !important;
       color: #000000 !important;
-      text-transform: uppercase;
     }
 
     .time-select-group {
@@ -93,13 +101,20 @@
       width: 100%;
     }
 
+    .time-select-group label {
+      font-size: 14px;
+      font-weight: bold;
+    }
+
     .time-select-group select {
       padding: 10px;
       font-size: 15px;
       border: 2px solid #000;
       border-radius: 8px;
       width: 100%;
+      outline: none;
       background-color: #fff;
+      cursor: pointer;
     }
 
     #startBtn {
@@ -111,83 +126,19 @@
       border: none;
       border-radius: 8px;
       cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
       width: 100%;
     }
 
-    /* Giriş Paneli */
-    #authPanel {
-      display: none;
-      padding-top: 70px;
-      width: 90%;
-      max-width: 360px;
-      margin: 0 auto;
-      text-align: center;
-    }
-
-    .panel-card {
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      border: 2px solid #000;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .panel-card input {
-      padding: 12px;
-      border: 1px solid #000;
-      border-radius: 6px;
-      font-size: 14px;
-    }
-
-    .panel-card button {
-      padding: 12px;
-      font-size: 15px;
-      font-weight: bold;
-      background-color: #007bff;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    .list-box {
-      max-height: 150px;
-      overflow-y: auto;
-      text-align: left;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      padding: 8px;
-      font-size: 13px;
-      background-color: #f9f9f9;
-    }
-
-    .list-item {
-      padding: 6px 0;
-      border-bottom: 1px solid #eee;
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-    }
-
-    .admin-box {
-      border-top: 2px dashed #ff9800;
-      padding-top: 10px;
-      margin-top: 10px;
-      text-align: left;
-    }
-
-    .admin-box h4 {
-      color: #d97706;
-      margin-bottom: 6px;
+    #startBtn:hover {
+      background-color: #0056b3;
     }
 
     /* Oyun Alanı */
     #gameArea {
       display: none;
       width: 100%;
-      height: 100vh;
+      height: 100%;
       position: relative;
     }
 
@@ -198,6 +149,7 @@
       transform: translateX(-50%);
       display: flex;
       gap: 15px;
+      z-index: 100;
     }
 
     .info-badge {
@@ -208,6 +160,7 @@
       font-size: 16px;
       font-weight: bold;
       color: #000000;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
 
     #cardContainer {
@@ -234,6 +187,7 @@
       padding: 10px 24px;
       border: 3px solid #000000;
       border-radius: 30px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       transform: translateY(10px);
       width: 100%;
     }
@@ -253,6 +207,7 @@
       border: 2px solid #000000;
       border-radius: 16px;
       background-color: #ffffff;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
       display: flex;
       flex-direction: column;
       gap: 14px;
@@ -298,11 +253,75 @@
       font-size: 15px;
       cursor: pointer;
     }
+
+    /* Modal / Pencere Yapısı */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 200;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background-color: #fff;
+      padding: 25px;
+      border-radius: 12px;
+      border: 3px solid #000;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 90%;
+      max-width: 350px;
+    }
+
+    .modal-content input {
+      padding: 10px;
+      border: 1px solid #000;
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .modal-content button {
+      padding: 10px 20px;
+      font-size: 15px;
+      font-weight: bold;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .history-list {
+      max-height: 180px;
+      overflow-y: auto;
+      text-align: left;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 8px;
+      font-size: 13px;
+    }
+
+    .history-item {
+      padding: 6px 0;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+    }
   </style>
 </head>
 <body>
 
-  <button id="authHeaderBtn" onclick="toggleAuthPanel()">Giriş Yap / Kayıt Ol</button>
+  <!-- Sağ Üst Buton -->
+  <button id="authHeaderBtn" onclick="openAuthModal()">Giriş Yap / Kayıt Ol</button>
 
   <!-- Başlangıç Ekranı -->
   <div id="startContainer">
@@ -345,32 +364,6 @@
     <button id="startBtn">Başlat 🚀</button>
   </div>
 
-  <!-- Giriş Paneli -->
-  <div id="authPanel">
-    <div class="panel-card">
-      <h3 id="authTitle">Giriş Yap / Kayıt Ol</h3>
-      <div id="authForm">
-        <input type="email" id="userEmail" placeholder="Gmail adresiniz..." style="width:100%;">
-        <input type="password" id="userPass" placeholder="Şifreniz..." style="width:100%; margin-top:8px;">
-        <button onclick="handleAuth()" style="margin-top:12px; width:100%;">Devam Et ➡️</button>
-      </div>
-      <div id="userProfile" style="display:none;">
-        <p id="loggedInUserText" style="font-weight:bold; word-break:break-all;"></p>
-        
-        <!-- SADECE SİZİN MAİLİNİZDE GÖRÜNECEK LİSTE -->
-        <div id="adminUserListSection" class="admin-box" style="display:none;">
-          <h4>🔑 Kayıtlı Kullanıcılar (Gözetim):</h4>
-          <div id="allUsersList" class="list-box"></div>
-        </div>
-
-        <h4 style="margin-top:10px; text-align:left;">Oyun Geçmişiniz:</h4>
-        <div id="historyContainer" class="list-box"></div>
-        <button onclick="logout()" style="background-color:#dc3545; margin-top:8px; width:100%;">Çıkış Yap</button>
-      </div>
-      <button onclick="toggleAuthPanel()" style="background-color:#6c757d; margin-top:5px; width:100%;">Geri Dön ↩️</button>
-    </div>
-  </div>
-
   <!-- Oyun Alanı -->
   <div id="gameArea">
     <div id="topBar">
@@ -384,9 +377,35 @@
     </div>
   </div>
 
-  <script>
-    const ADMIN_EMAIL = "bilalberatgorgin@gmail.com";
+  <!-- Giriş / Kayıt Ol Penceresi -->
+  <div id="authModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3 id="authTitle">Giriş Yap / Kayıt Ol</h3>
+      <div id="authForm">
+        <input type="email" id="userEmail" placeholder="Gmail adresiniz..." style="width:100%;">
+        <input type="password" id="userPass" placeholder="Şifreniz..." style="width:100%; margin-top:8px;">
+        <button onclick="handleAuth()" style="margin-top:12px; width:100%;">Devam Et ➡️</button>
+      </div>
+      <div id="userProfile" style="display:none;">
+        <p id="loggedInUserText" style="font-weight:bold; word-break:break-all;"></p>
+        <h4 style="margin-top:10px; text-align:left;">Oyun Geçmişiniz:</h4>
+        <div id="historyContainer" class="history-list"></div>
+        <button onclick="logout()" style="background-color:#dc3545; margin-top:8px; width:100%;">Çıkış Yap</button>
+      </div>
+      <button onclick="closeAuthModal()" style="background-color:#6c757d; margin-top:5px; width:100%;">Kapat</button>
+    </div>
+  </div>
 
+  <!-- Oyun Bitti Penceresi -->
+  <div id="gameOverModal" class="modal-overlay">
+    <div class="modal-content">
+      <h2>Süre Bitti! ⏰</h2>
+      <p id="finalScoreText">Toplam Skorunuz: 0</p>
+      <button onclick="location.reload()">Yeniden Oyna 🔄</button>
+    </div>
+  </div>
+
+  <script>
     const beseriList = [
       "köprü", "yol", "baraj", "bina", "ev", "okul", "hastane", "fabrika", "tünel", "park", 
       "araba", "uçak", "liman", "stadyum", "kanal", "müze", "sokak", "şehir", "kule", "surlar", 
@@ -416,7 +435,6 @@
     let currentUser = localStorage.getItem("currentUser") || null;
 
     const startContainer = document.getElementById("startContainer");
-    const authPanel = document.getElementById("authPanel");
     const startBtn = document.getElementById("startBtn");
     const gameArea = document.getElementById("gameArea");
     const cardContent = document.getElementById("cardContent");
@@ -427,17 +445,6 @@
     const authHeaderBtn = document.getElementById("authHeaderBtn");
 
     updateAuthUI();
-
-    function toggleAuthPanel() {
-      if (authPanel.style.display === "block") {
-        authPanel.style.display = "none";
-        startContainer.style.display = "flex";
-      } else {
-        authPanel.style.display = "block";
-        startContainer.style.display = "none";
-        updateAuthUI();
-      }
-    }
 
     function initAudio() {
       if (!audioCtx) {
@@ -476,18 +483,24 @@
       }
     }
 
+    /* Üyelik ve Geçmiş Yönetimi */
+    function openAuthModal() {
+      document.getElementById("authModal").style.display = "flex";
+      updateAuthUI();
+    }
+
+    function closeAuthModal() {
+      document.getElementById("authModal").style.display = "none";
+    }
+
     function handleAuth() {
-      const email = document.getElementById("userEmail").value.trim().toLowerCase();
+      const email = document.getElementById("userEmail").value.trim();
       const pass = document.getElementById("userPass").value.trim();
 
       if (!email || !pass) {
         alert("Lütfen Gmail ve şifrenizi girin!");
         return;
       }
-
-      const users = JSON.parse(localStorage.getItem("registeredUsers") || "{}");
-      users[email] = pass;
-      localStorage.setItem("registeredUsers", JSON.stringify(users));
 
       currentUser = email;
       localStorage.setItem("currentUser", currentUser);
@@ -508,39 +521,12 @@
         document.getElementById("userProfile").style.display = "block";
         document.getElementById("loggedInUserText").textContent = currentUser;
         renderHistory();
-
-        const adminSection = document.getElementById("adminUserListSection");
-        if (currentUser === ADMIN_EMAIL) {
-          adminSection.style.display = "block";
-          renderAllUsers();
-        } else {
-          adminSection.style.display = "none";
-        }
-
       } else {
         authHeaderBtn.textContent = "Giriş Yap / Kayıt Ol";
         document.getElementById("authTitle").textContent = "Giriş Yap / Kayıt Ol";
         document.getElementById("authForm").style.display = "block";
         document.getElementById("userProfile").style.display = "none";
       }
-    }
-
-    function renderAllUsers() {
-      const users = JSON.parse(localStorage.getItem("registeredUsers") || "{}");
-      const container = document.getElementById("allUsersList");
-      const keys = Object.keys(users);
-
-      if (keys.length === 0) {
-        container.innerHTML = "<p style='color:#777;'>Henüz kayıtlı kullanıcı yok.</p>";
-        return;
-      }
-
-      container.innerHTML = keys.map(email => `
-        <div class="list-item">
-          <span>📧 ${email}</span>
-          <span>🔑 <strong>${users[email]}</strong></span>
-        </div>
-      `).join("");
     }
 
     function saveGameToHistory(finalScore) {
@@ -569,7 +555,7 @@
       }
 
       container.innerHTML = history.map(item => `
-        <div class="list-item">
+        <div class="history-item">
           <span>📅 ${item.date}</span>
           <strong>Skor: ${item.score}</strong>
         </div>
@@ -587,7 +573,6 @@
       updateTimerDisplay();
 
       startContainer.style.display = "none";
-      authPanel.style.display = "none";
       authHeaderBtn.style.display = "none";
       gameArea.style.display = "block";
 
@@ -678,8 +663,8 @@
         if (timeLeft <= 0) {
           clearInterval(timerInterval);
           saveGameToHistory(score);
-          alert("Süre Bitti! Toplam Skorunuz: " + score);
-          location.reload();
+          document.getElementById("finalScoreText").textContent = "Toplam Skorunuz: " + score;
+          document.getElementById("gameOverModal").style.display = "flex";
         }
       }, 1000);
     }
@@ -694,4 +679,12 @@
     function showResult(text, type) {
       clearTimeout(msgTimeout);
       resultMessage.textContent = text;
-      resultMessage.className = `
+      resultMessage.className = `show ${type}`;
+
+      msgTimeout = setTimeout(() => {
+        resultMessage.className = "";
+      }, 1500);
+    }
+  </script>
+</body>
+</html>
