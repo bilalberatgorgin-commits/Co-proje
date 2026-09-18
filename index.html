@@ -21,18 +21,18 @@
       position: relative;
     }
 
-    /* Üst Butonlar */
+    /* Sağ Üst Butonlar */
     #headerButtons {
       position: fixed;
       top: 15px;
       right: 15px;
       display: flex;
-      gap: 10px;
-      z-index: 500;
+      gap: 8px;
+      z-index: 999;
     }
 
     .header-btn {
-      padding: 10px 16px;
+      padding: 10px 14px;
       background-color: #007bff;
       color: #fff;
       border: none;
@@ -461,7 +461,7 @@
     <div class="modal-content">
       <h2>Süre Bitti! ⏰</h2>
       <p id="finalScoreText">Toplam Skorunuz: 0</p>
-      <button onclick="location.reload()">Yeniden Oyna 🔄</button>
+      <button id="reloadBtn">Yeniden Oyna 🔄</button>
     </div>
   </div>
 
@@ -497,7 +497,6 @@
     let currentUser = localStorage.getItem("currentUser") || null;
 
     const startContainer = document.getElementById("startContainer");
-    const startBtn = document.getElementById("startBtn");
     const gameArea = document.getElementById("gameArea");
     const cardContent = document.getElementById("cardContent");
     const resultMessage = document.getElementById("resultMessage");
@@ -507,23 +506,36 @@
     const authHeaderBtn = document.getElementById("authHeaderBtn");
     const adminHeaderBtn = document.getElementById("adminHeaderBtn");
 
-    // Güvenli Tıklama Dinleyicileri
-    function bindClick(id, handler) {
+    // Hem tıklama hem dokunma olaylarını eşleme
+    function addTouchAndClickListener(id, handler) {
       const el = document.getElementById(id);
       if (!el) return;
-      el.addEventListener("click", handler);
+      
+      let touched = false;
+      el.addEventListener("touchstart", (e) => {
+        touched = true;
+        handler(e);
+      }, { passive: true });
+
+      el.addEventListener("click", (e) => {
+        if (!touched) {
+          handler(e);
+        }
+        touched = false;
+      });
     }
 
-    window.addEventListener("load", () => {
-      bindClick("authHeaderBtn", openAuthModal);
-      bindClick("adminHeaderBtn", openAdminModal);
-      bindClick("submitAuthBtn", handleAuth);
-      bindClick("logoutBtn", logout);
-      bindClick("closeAuthBtn", () => closeModal('authModal'));
-      bindClick("closeAdminBtn", () => closeModal('adminModal'));
-      bindClick("addTimeBtn", addCustomTime);
-      bindClick("addWordBtn", addNewWord);
-      bindClick("startBtn", startGame);
+    window.addEventListener("DOMContentLoaded", () => {
+      addTouchAndClickListener("authHeaderBtn", openAuthModal);
+      addTouchAndClickListener("adminHeaderBtn", openAdminModal);
+      addTouchAndClickListener("submitAuthBtn", handleAuth);
+      addTouchAndClickListener("logoutBtn", logout);
+      addTouchAndClickListener("closeAuthBtn", () => closeModal('authModal'));
+      addTouchAndClickListener("closeAdminBtn", () => closeModal('adminModal'));
+      addTouchAndClickListener("addTimeBtn", addCustomTime);
+      addTouchAndClickListener("addWordBtn", addNewWord);
+      addTouchAndClickListener("startBtn", startGame);
+      addTouchAndClickListener("reloadBtn", () => location.reload());
 
       updateAuthUI();
     });
@@ -672,18 +684,4 @@
       const keys = Object.keys(users);
 
       if (keys.length === 0) {
-        container.innerHTML = "<p style='color:#777;'>Kayıtlı kullanıcı yok.</p>";
-        return;
-      }
-
-      container.innerHTML = keys.map(email => `
-        <div class="list-item">
-          <span>📧 ${email}</span>
-          <span>🔑 <strong>${users[email]}</strong></span>
-        </div>
-      `).join("");
-    }
-
-    function addCustomTime() {
-      const mins = parseInt(document.getElementById("customMinutes").value);
-      i
+        contain
