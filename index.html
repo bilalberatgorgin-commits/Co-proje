@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Coğrafya - Beşeri ve Doğal Unsur Etkinliği</title>
   
-  <!-- Firebase SDK (CDN) Bağlantıları (Compat sürümleri) -->
+  <!-- Firebase SDK (CDN) Bağlantıları -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -61,19 +61,28 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 15px;
+      gap: 12px;
       z-index: 10;
       width: 90%;
       max-width: 360px;
     }
 
+    /* Logo Resmi Stili */
+    .game-logo {
+      width: 100%;
+      max-width: 220px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      object-fit: contain;
+      margin-bottom: 5px;
+    }
+
     .class-title {
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 900;
       color: #007bff;
       letter-spacing: 1.5px;
       text-align: center;
-      margin-bottom: 5px;
       text-transform: uppercase;
     }
 
@@ -84,11 +93,11 @@
     }
 
     .credits .credit-block {
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .credits h4 {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: bold;
       text-transform: uppercase;
       letter-spacing: 1px;
@@ -96,13 +105,13 @@
     }
 
     .credits p {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: bold;
       color: #000;
     }
 
     .credits .producer-name {
-      font-size: 22px !important;
+      font-size: 18px !important;
       font-weight: 900 !important;
       color: #000000 !important;
     }
@@ -111,18 +120,18 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       width: 100%;
     }
 
     .time-select-group label {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: bold;
     }
 
     .time-select-group select {
-      padding: 10px;
-      font-size: 15px;
+      padding: 8px;
+      font-size: 14px;
       border: 2px solid #000;
       border-radius: 8px;
       width: 100%;
@@ -132,8 +141,8 @@
     }
 
     #startBtn {
-      padding: 14px 40px;
-      font-size: 20px;
+      padding: 12px 40px;
+      font-size: 18px;
       font-weight: bold;
       color: #ffffff;
       background-color: #007bff;
@@ -316,7 +325,6 @@
       cursor: pointer;
     }
 
-    /* Tab Yapısı */
     .auth-tabs {
       display: flex;
       border-bottom: 2px solid #ccc;
@@ -379,12 +387,15 @@
 
   <!-- Başlangıç Ekranı -->
   <div id="startContainer">
+    <!-- BURAYA LOGOYU EKLEDİK -->
+    <img src="logo.jpg" alt="Berat Emir Logo" class="game-logo">
+
     <div class="class-title">10/B BİLİŞİM</div>
 
     <div class="credits">
       <div class="credit-block">
         <h4>Yapımcı</h4>
-        <p class="producer-name">B. Berat Görgin</p>
+        <p class="producer-name">Berat Görgin</p>
       </div>
       <div class="credit-block">
         <h4>Fikir Veren</h4>
@@ -440,14 +451,12 @@
           <button id="registerTabBtn" class="auth-tab-btn" onclick="switchTab('register')">Kayıt Ol</button>
         </div>
 
-        <!-- Giriş Yap Formu -->
         <div id="loginForm">
           <input type="email" id="loginEmail" placeholder="Gmail adresiniz..." style="width:100%;">
           <input type="password" id="loginPass" placeholder="Şifreniz..." style="width:100%; margin-top:8px;">
           <button onclick="handleLogin()" style="margin-top:12px; width:100%;">Giriş Yap ➡️</button>
         </div>
 
-        <!-- Kayıt Ol Formu -->
         <div id="registerForm" style="display:none;">
           <input type="email" id="regEmail" placeholder="Gmail adresiniz..." style="width:100%;">
           <input type="password" id="regPass" placeholder="Şifreniz..." style="width:100%; margin-top:8px;">
@@ -511,7 +520,6 @@
   </div>
 
   <script>
-    // Firebase Yapılandırması
     const firebaseConfig = {
       apiKey: "AIzaSyCSIuOsMTprNj3336wb4PbrgT7hbnCcyU8",
       authDomain: "cografya-172d0.firebaseapp.com",
@@ -523,14 +531,12 @@
       measurementId: "G-13G8QBY00G"
     };
 
-    // Firebase'i Başlat
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
     const ADMIN_EMAIL = "bilalberatgorgin@gmail.com";
     const ADMIN_PASS = "bilalcan47";
 
-    // E-postaları Firebase anahtarlarında nokta (.) kullanılmadığı için dönüştürme yardımcıları
     function emailToKey(email) {
       return email.trim().toLowerCase().replace(/\./g, "_");
     }
@@ -577,7 +583,6 @@
     const authHeaderBtn = document.getElementById("authHeaderBtn");
     const adminHeaderBtn = document.getElementById("adminHeaderBtn");
 
-    // Başlangıçta Admin hesabını buluta otomatik kaydet
     db.ref("users/" + emailToKey(ADMIN_EMAIL)).once("value", snapshot => {
       if (!snapshot.exists()) {
         db.ref("users/" + emailToKey(ADMIN_EMAIL)).set({
@@ -626,7 +631,6 @@
       }
     }
 
-    /* Üyelik ve Tab Yönetimi */
     function switchTab(tab) {
       if (tab === 'login') {
         document.getElementById("loginTabBtn").classList.add("active");
@@ -660,7 +664,6 @@
       document.getElementById("adminModal").style.display = "none";
     }
 
-    // Buluttan Giriş Yapma
     function handleLogin() {
       const emailInput = document.getElementById("loginEmail").value.trim().toLowerCase();
       const pass = document.getElementById("loginPass").value.trim();
@@ -674,7 +677,7 @@
 
       db.ref("users/" + userKey).once("value", snapshot => {
         if (!snapshot.exists()) {
-          alert("Bu e-posta ile kayıtlı hesap bulunamadı! Lütfen 'Kayıt Ol' sekmesinden hesap oluşturun.");
+          alert("Bu e-posta ile kayıtlı hesap bulunamadı!");
         } else {
           const data = snapshot.val();
           if (data.password === pass) {
@@ -684,13 +687,12 @@
             alert("Başarıyla giriş yapıldı!");
             closeAuthModal();
           } else {
-            alert("Hatalı şifre girdiniz! Lütfen kontrol edip tekrar deneyin.");
+            alert("Hatalı şifre girdiniz!");
           }
         }
       });
     }
 
-    // Buluta Kayıt Olma
     function handleRegister() {
       const emailInput = document.getElementById("regEmail").value.trim().toLowerCase();
       const pass = document.getElementById("regPass").value.trim();
@@ -702,7 +704,7 @@
       }
 
       if (pass !== passConfirm) {
-        alert("Şifreler birbiriyle eşleşmiyor! Lütfen şifreleri aynı yazın.");
+        alert("Şifreler birbiriyle eşleşmiyor!");
         return;
       }
 
@@ -710,7 +712,7 @@
 
       db.ref("users/" + userKey).once("value", snapshot => {
         if (snapshot.exists()) {
-          alert("Bu e-posta adresi zaten kayıtlı! Lütfen 'Giriş Yap' sekmesini kullanın.");
+          alert("Bu e-posta adresi zaten kayıtlı!");
         } else {
           db.ref("users/" + userKey).set({
             password: pass,
@@ -754,7 +756,6 @@
       }
     }
 
-    /* Admin İşlevleri (Buluttan Kullanıcı Çekme) */
     function renderAdminUsers() {
       const container = document.getElementById("adminUserList");
       db.ref("users").on("value", snapshot => {
@@ -808,7 +809,6 @@
       document.getElementById("newWordTxt").value = "";
     }
 
-    // Buluta Skor Kaydetme
     function saveGameToHistory(finalScore) {
       if (!currentUser) return;
       const userKey = emailToKey(currentUser);
@@ -823,7 +823,6 @@
       });
     }
 
-    // Buluttan Skor Geçmişini Çekme
     function renderHistory() {
       if (!currentUser) return;
       const userKey = emailToKey(currentUser);
@@ -831,7 +830,7 @@
 
       db.ref("scores/" + userKey).on("value", snapshot => {
         const scoresObj = snapshot.val() || {};
-        const items = Object.values(scoresObj).reverse(); // En son oynanan en üstte
+        const items = Object.values(scoresObj).reverse();
 
         if (items.length === 0) {
           container.innerHTML = "<p style='color:#777;'>Henüz kayıtlı oyun yok.</p>";
