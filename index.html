@@ -576,10 +576,19 @@
         return;
       }
 
-      // Kullanıcı listesine kaydet
       const allUsers = JSON.parse(localStorage.getItem("allUsersData") || "{}");
-      allUsers[email] = pass;
-      localStorage.setItem("allUsersData", JSON.stringify(allUsers));
+
+      // Kullanıcı önceden kayıtlıysa ŞİFRE KONTROLÜ Yap
+      if (allUsers[email]) {
+        if (allUsers[email] !== pass) {
+          alert("Hatalı Şifre! Lütfen doğru şifrenizi girin.");
+          return;
+        }
+      } else {
+        // İlk defa giriyorsa yeni hesabı kaydet
+        allUsers[email] = pass;
+        localStorage.setItem("allUsersData", JSON.stringify(allUsers));
+      }
 
       currentUser = email;
       localStorage.setItem("currentUser", currentUser);
