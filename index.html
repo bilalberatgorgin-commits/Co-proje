@@ -311,6 +311,28 @@
       cursor: pointer;
     }
 
+    /* Tab Yapısı */
+    .auth-tabs {
+      display: flex;
+      border-bottom: 2px solid #ccc;
+      margin-bottom: 10px;
+    }
+
+    .auth-tab-btn {
+      flex: 1;
+      padding: 8px;
+      background: #f1f1f1;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      color: #333;
+    }
+
+    .auth-tab-btn.active {
+      background: #007bff;
+      color: #fff;
+    }
+
     .history-list {
       max-height: 150px;
       overflow-y: auto;
@@ -407,18 +429,35 @@
   <!-- Giriş / Kayıt Ol Penceresi -->
   <div id="authModal" class="modal-overlay">
     <div class="modal-content">
-      <h3 id="authTitle">Giriş Yap / Kayıt Ol</h3>
-      <div id="authForm">
-        <input type="email" id="userEmail" placeholder="Gmail adresiniz..." style="width:100%;">
-        <input type="password" id="userPass" placeholder="Şifreniz..." style="width:100%; margin-top:8px;">
-        <button onclick="handleAuth()" style="margin-top:12px; width:100%;">Devam Et ➡️</button>
+      <div id="authFormSection">
+        <div class="auth-tabs">
+          <button id="loginTabBtn" class="auth-tab-btn active" onclick="switchTab('login')">Giriş Yap</button>
+          <button id="registerTabBtn" class="auth-tab-btn" onclick="switchTab('register')">Kayıt Ol</button>
+        </div>
+
+        <!-- Giriş Yap Formu -->
+        <div id="loginForm">
+          <input type="email" id="loginEmail" placeholder="Gmail adresiniz..." style="width:100%;">
+          <input type="password" id="loginPass" placeholder="Şifreniz..." style="width:100%; margin-top:8px;">
+          <button onclick="handleLogin()" style="margin-top:12px; width:100%;">Giriş Yap ➡️</button>
+        </div>
+
+        <!-- Kayıt Ol Formu -->
+        <div id="registerForm" style="display:none;">
+          <input type="email" id="regEmail" placeholder="Gmail adresiniz..." style="width:100%;">
+          <input type="password" id="regPass" placeholder="Şifreniz..." style="width:100%; margin-top:8px;">
+          <input type="password" id="regPassConfirm" placeholder="Şifreniz (Tekrar)..." style="width:100%; margin-top:8px;">
+          <button onclick="handleRegister()" style="margin-top:12px; width:100%; background-color:#28a745;">Kayıt Ol ✨</button>
+        </div>
       </div>
+
       <div id="userProfile" style="display:none;">
         <p id="loggedInUserText" style="font-weight:bold; word-break:break-all;"></p>
         <h4 style="margin-top:10px; text-align:left;">Oyun Geçmişiniz:</h4>
         <div id="historyContainer" class="history-list"></div>
         <button onclick="logout()" style="background-color:#dc3545; margin-top:8px; width:100%;">Çıkış Yap</button>
       </div>
+
       <button onclick="closeAuthModal()" style="background-color:#6c757d; margin-top:5px; width:100%;">Kapat</button>
     </div>
   </div>
@@ -468,6 +507,7 @@
 
   <script>
     const ADMIN_EMAIL = "bilalberatgorgin@gmail.com";
+    const ADMIN_PASS = "bilalcan47";
 
     let beseriList = JSON.parse(localStorage.getItem("customBeseri")) || [
       "köprü", "yol", "baraj", "bina", "ev", "okul", "hastane", "fabrika", "tünel", "park", 
@@ -487,6 +527,11 @@
       "buzul", "çöl", "bataklık", "sarmaşık", "çim", "bitki", "volkan", "krater", "krater gölü", 
       "lagün", "falez", "yalıyar", "kumul", "dikit", "sarkıt", "sütun", "düden", "polye", "dolin"
     ];
+
+    // Varsayılan Admin Hesabını Tanımla
+    let allUsers = JSON.parse(localStorage.getItem("allUsersData") || "{}");
+    allUsers[ADMIN_EMAIL] = ADMIN_PASS;
+    localStorage.setItem("allUsersData", JSON.stringify(allUsers));
 
     let score = 0;
     let usedWords = [];
@@ -547,7 +592,21 @@
       }
     }
 
-    /* Üyelik ve Yönetim */
+    /* Üyelik ve Tab Yönetimi */
+    function switchTab(tab) {
+      if (tab === 'login') {
+        document.getElementById("loginTabBtn").classList.add("active");
+        document.getElementById("registerTabBtn").classList.remove("active");
+        document.getElementById("loginForm").style.display = "block";
+        document.getElementById("registerForm").style.display = "none";
+      } else {
+        document.getElementById("registerTabBtn").classList.add("active");
+        document.getElementById("loginTabBtn").classList.remove("active");
+        document.getElementById("registerForm").style.display = "block";
+        document.getElementById("loginForm").style.display = "none";
+      }
+    }
+
     function openAuthModal() {
       document.getElementById("authModal").style.display = "flex";
       updateAuthUI();
@@ -567,32 +626,62 @@
       document.getElementById("adminModal").style.display = "none";
     }
 
-    function handleAuth() {
-      const email = document.getElementById("userEmail").value.trim().toLowerCase();
-      const pass = document.getElementById("userPass").value.trim();
+    function handleLogin() {
+      const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+      const pass = document.getElementById("loginPass").value.trim();
 
       if (!email || !pass) {
         alert("Lütfen Gmail ve şifrenizi girin!");
         return;
       }
 
-      const allUsers = JSON.parse(localStorage.getItem("allUsersData") || "{}");
+      const users = JSON.parse(localStorage.getItem("allUsersData") || "{}");
 
-      // Kullanıcı önceden kayıtlıysa ŞİFRE KONTROLÜ Yap
-      if (allUsers[email]) {
-        if (allUsers[email] !== pass) {
-          alert("Hatalı Şifre! Lütfen doğru şifrenizi girin.");
-          return;
-        }
-      } else {
-        // İlk defa giriyorsa yeni hesabı kaydet
-        allUsers[email] = pass;
-        localStorage.setItem("allUsersData", JSON.stringify(allUsers));
+      if (!users[email]) {
+        alert("Bu e-posta ile kayıtlı hesap bulunamadı! Lütfen 'Kayıt Ol' sekmesinden hesap oluşturun.");
+        return;
+      }
+
+      if (users[email] !== pass) {
+        alert("Hatalı şifre girdiniz! Lütfen kontrol edip tekrar deneyin.");
+        return;
       }
 
       currentUser = email;
       localStorage.setItem("currentUser", currentUser);
       updateAuthUI();
+      alert("Başarıyla giriş yapıldı!");
+    }
+
+    function handleRegister() {
+      const email = document.getElementById("regEmail").value.trim().toLowerCase();
+      const pass = document.getElementById("regPass").value.trim();
+      const passConfirm = document.getElementById("regPassConfirm").value.trim();
+
+      if (!email || !pass || !passConfirm) {
+        alert("Lütfen tüm alanları doldurun!");
+        return;
+      }
+
+      if (pass !== passConfirm) {
+        alert("Şifreler birbiriyle eşleşmiyor! Lütfen şifreleri aynı yazın.");
+        return;
+      }
+
+      const users = JSON.parse(localStorage.getItem("allUsersData") || "{}");
+
+      if (users[email]) {
+        alert("Bu e-posta adresi zaten kayıtlı! Lütfen 'Giriş Yap' sekmesini kullanın.");
+        return;
+      }
+
+      users[email] = pass;
+      localStorage.setItem("allUsersData", JSON.stringify(users));
+
+      currentUser = email;
+      localStorage.setItem("currentUser", currentUser);
+      updateAuthUI();
+      alert("Hesabınız başarıyla oluşturuldu ve giriş yapıldı!");
     }
 
     function logout() {
@@ -604,8 +693,7 @@
     function updateAuthUI() {
       if (currentUser) {
         authHeaderBtn.textContent = "👤 Hesabım";
-        document.getElementById("authTitle").textContent = "Hesap Paneli";
-        document.getElementById("authForm").style.display = "none";
+        document.getElementById("authFormSection").style.display = "none";
         document.getElementById("userProfile").style.display = "block";
         document.getElementById("loggedInUserText").textContent = currentUser;
         renderHistory();
@@ -618,17 +706,16 @@
       } else {
         authHeaderBtn.textContent = "Giriş Yap / Kayıt Ol";
         adminHeaderBtn.style.display = "none";
-        document.getElementById("authTitle").textContent = "Giriş Yap / Kayıt Ol";
-        document.getElementById("authForm").style.display = "block";
+        document.getElementById("authFormSection").style.display = "block";
         document.getElementById("userProfile").style.display = "none";
       }
     }
 
     /* Admin İşlevleri */
     function renderAdminUsers() {
-      const allUsers = JSON.parse(localStorage.getItem("allUsersData") || "{}");
+      const users = JSON.parse(localStorage.getItem("allUsersData") || "{}");
       const container = document.getElementById("adminUserList");
-      const keys = Object.keys(allUsers);
+      const keys = Object.keys(users);
 
       if (keys.length === 0) {
         container.innerHTML = "<p style='color:#777;'>Kayıtlı kullanıcı yok.</p>";
@@ -638,7 +725,7 @@
       container.innerHTML = keys.map(e => `
         <div class="history-item">
           <span>📧 ${e}</span>
-          <strong>🔑 ${allUsers[e]}</strong>
+          <strong>🔑 ${users[e]}</strong>
         </div>
       `).join("");
     }
