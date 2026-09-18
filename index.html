@@ -21,18 +21,18 @@
       position: relative;
     }
 
-    /* Sağ Üst Butonlar */
+    /* Üst Butonlar */
     #headerButtons {
-      position: absolute;
+      position: fixed;
       top: 15px;
       right: 15px;
       display: flex;
-      gap: 8px;
-      z-index: 150;
+      gap: 10px;
+      z-index: 500;
     }
 
     .header-btn {
-      padding: 10px 14px;
+      padding: 10px 16px;
       background-color: #007bff;
       color: #fff;
       border: none;
@@ -40,7 +40,7 @@
       font-weight: bold;
       font-size: 13px;
       cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
 
     #adminHeaderBtn {
@@ -118,7 +118,7 @@
     }
 
     .time-select-group select {
-      padding: 10px;
+      padding: 12px;
       font-size: 15px;
       border: 2px solid #000;
       border-radius: 8px;
@@ -261,7 +261,7 @@
       cursor: pointer;
     }
 
-    /* Modal / Pencere Yapısı */
+    /* Modal / Pencereler */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -270,7 +270,7 @@
       width: 100vw;
       height: 100vh;
       background: rgba(0, 0, 0, 0.7);
-      z-index: 300;
+      z-index: 1000;
       justify-content: center;
       align-items: center;
     }
@@ -343,7 +343,7 @@
 </head>
 <body>
 
-  <!-- Sağ Üst Butonlar -->
+  <!-- Üst Butonlar -->
   <div id="headerButtons">
     <button id="adminHeaderBtn" class="header-btn">👑 Admin Paneli</button>
     <button id="authHeaderBtn" class="header-btn">Giriş Yap / Kayıt Ol</button>
@@ -403,7 +403,7 @@
     </div>
   </div>
 
-  <!-- Giriş / Kayıt Ol Penceresi -->
+  <!-- Giriş / Kayıt Ol Modal -->
   <div id="authModal" class="modal-overlay">
     <div class="modal-content">
       <h3 id="authTitle">Giriş Yap / Kayıt Ol</h3>
@@ -422,7 +422,7 @@
     </div>
   </div>
 
-  <!-- Admin Paneli Penceresi -->
+  <!-- Admin Paneli Modal -->
   <div id="adminModal" class="modal-overlay">
     <div class="modal-content">
       <h3>👑 Özel Admin Paneli</h3>
@@ -456,7 +456,7 @@
     </div>
   </div>
 
-  <!-- Oyun Bitti Penceresi -->
+  <!-- Oyun Bitti Modal -->
   <div id="gameOverModal" class="modal-overlay">
     <div class="modal-content">
       <h2>Süre Bitti! ⏰</h2>
@@ -507,16 +507,23 @@
     const authHeaderBtn = document.getElementById("authHeaderBtn");
     const adminHeaderBtn = document.getElementById("adminHeaderBtn");
 
-    // Buton Dinleyicileri (Mobil Uyumlu Event Binding)
-    document.addEventListener("DOMContentLoaded", () => {
-      authHeaderBtn.addEventListener("click", openAuthModal);
-      adminHeaderBtn.addEventListener("click", openAdminModal);
-      document.getElementById("submitAuthBtn").addEventListener("click", handleAuth);
-      document.getElementById("logoutBtn").addEventListener("click", logout);
-      document.getElementById("closeAuthBtn").addEventListener("click", () => closeModal('authModal'));
-      document.getElementById("closeAdminBtn").addEventListener("click", () => closeModal('adminModal'));
-      document.getElementById("addTimeBtn").addEventListener("click", addCustomTime);
-      document.getElementById("addWordBtn").addEventListener("click", addNewWord);
+    // Güvenli Tıklama Dinleyicileri
+    function bindClick(id, handler) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener("click", handler);
+    }
+
+    window.addEventListener("load", () => {
+      bindClick("authHeaderBtn", openAuthModal);
+      bindClick("adminHeaderBtn", openAdminModal);
+      bindClick("submitAuthBtn", handleAuth);
+      bindClick("logoutBtn", logout);
+      bindClick("closeAuthBtn", () => closeModal('authModal'));
+      bindClick("closeAdminBtn", () => closeModal('adminModal'));
+      bindClick("addTimeBtn", addCustomTime);
+      bindClick("addWordBtn", addNewWord);
+      bindClick("startBtn", startGame);
 
       updateAuthUI();
     });
@@ -674,4 +681,9 @@
           <span>📧 ${email}</span>
           <span>🔑 <strong>${users[email]}</strong></span>
         </div>
-      `).join("
+      `).join("");
+    }
+
+    function addCustomTime() {
+      const mins = parseInt(document.getElementById("customMinutes").value);
+      i
