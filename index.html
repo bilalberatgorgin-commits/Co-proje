@@ -973,6 +973,6 @@
 </body>
 </html>
 
-<button onclick="location.reload()" style="position: fixed; bottom: 20px; right: 20px; background: #ff4757; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 9999;">
-  🔄 Yeniden Başlat
+<button onclick="window.location.href = window.location.href.split('?')[0] + '?v=' + Date.now()" style="position: fixed; bottom: 20px; right: 20px; background: #ff4757; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 9999;">
+  🔄 Sunucudan Yenile
 </button>
