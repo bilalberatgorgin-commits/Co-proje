@@ -67,12 +67,11 @@
       max-width: 360px;
     }
 
-    /* Logo Resmi Stili */
+    /* Logo Resmi Stili (Gölge kaldırıldı) */
     .game-logo {
       width: 100%;
       max-width: 220px;
       border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
       object-fit: contain;
       margin-bottom: 5px;
     }
@@ -387,7 +386,6 @@
 
   <!-- Başlangıç Ekranı -->
   <div id="startContainer">
-    <!-- BURAYA LOGOYU EKLEDİK -->
     <img src="logo.jpg" alt="Berat Emir Logo" class="game-logo">
 
     <div class="class-title">10/B BİLİŞİM</div>
@@ -518,6 +516,11 @@
       <button onclick="location.reload()">Yeniden Oyna 🔄</button>
     </div>
   </div>
+
+  <!-- Sunucudan Yenile Butonu -->
+  <button onclick="window.location.href = window.location.href.split('?')[0] + '?v=' + Date.now()" style="position: fixed; bottom: 20px; right: 20px; background: #ff4757; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 9999;">
+    🔄 Sunucudan Yenile
+  </button>
 
   <script>
     const firebaseConfig = {
@@ -972,7 +975,3 @@
   </script>
 </body>
 </html>
-
-<button onclick="window.location.href = window.location.href.split('?')[0] + '?v=' + Date.now()" style="position: fixed; bottom: 20px; right: 20px; background: #ff4757; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 9999;">
-  🔄 Sunucudan Yenile
-</button>
